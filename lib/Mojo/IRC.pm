@@ -326,7 +326,8 @@ has 'pass';
 
 =head2 change_nick
 
-Change IRC nick name. Will only set nick accessor if not connected to a server.
+Change IRC nick name. This command will change the L</nick> attribute if not
+connected to the server.
 
 =cut
 
@@ -334,9 +335,9 @@ sub change_nick {
   my ($self, $nick) = @_;
   my $old = $self->nick // '';
 
-  return $old unless defined $nick;
+  return $self unless defined $nick;
   return $self if $old and $old eq $nick;
-  $self->write(NICK => $nick, sub { $_[1] or $self->nick($nick) });
+  $self->write(NICK => $nick, sub { $_[1] and $self->nick($nick) });
   $self;
 }
 
@@ -445,21 +446,25 @@ Will disconnect form the server and run the callback once it is done.
 sub disconnect {
   my ($self, $cb) = @_;
 
-  if (my $tid = delete $self->{ping_tid}) {
+  if(my $tid = delete $self->{ping_tid}) {
     $self->ioloop->remove($tid);
   }
-  if (!$self->{stream}) {
-    return $self->$cb;
+
+  if($self->{stream}) {
+    Scalar::Util::weaken($self);
+    $self->{stream}->write(
+      "QUIT\r\n",
+      sub {
+        $self->{stream}->close;
+        $self->$cb;
+      }
+    );
+  }
+  else {
+    $self->$cb;
   }
 
-  Scalar::Util::weaken($self);
-  $self->{stream}->write(
-    "QUIT\r\n",
-    sub {
-      $self->{stream}->close;
-      $self->$cb;
-    }
-  );
+  $self;
 }
 
 =head2 register_default_event_handlers
@@ -538,7 +543,7 @@ sub irc_notice {
   my ($self, $message) = @_;
 
   # NOTICE AUTH :*** Ident broken or disabled, to continue to connect you must type /QUOTE PASS 21105
-  if ($message->{params}[0] =~ m!/Ident broken.*QUOTE PASS (\S+)!) {
+  if ($message->{params}[0] =~ m!Ident broken.*QUOTE PASS (\S+)!) {
     $self->write(QUOTE => PASS => $1);
   }
 }
@@ -566,7 +571,7 @@ sub irc_rpl_welcome {
 
   Scalar::Util::weaken($self);
   $self->real_host($message->{prefix});
-  $self->{ping_tid} = $self->ioloop->timer(
+  $self->{ping_tid} ||= $self->ioloop->recurring(
     $TIMEOUT - 10,
     sub {
       $self->write(PING => $self->real_host);
