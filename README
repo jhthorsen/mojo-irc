@@ -1,6 +1,9 @@
 NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
+VERSION
+    0.01
+
 SYNOPSIS
       my $irc = Mojo::IRC->new(
                   nick => 'test123',
@@ -229,8 +232,8 @@ ATTRIBUTES
 
 METHODS
   change_nick
-    Change IRC nick name. Will only set nick accessor if not connected to a
-    server.
+    Change IRC nick name. This command will change the "nick" attribute if
+    not connected to the server.
 
   connect
       $self->connect(\&callback);

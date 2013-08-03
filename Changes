@@ -1,5 +1,6 @@
 Revision history for Mojo-IRC
 
-0.01
-       * Started project
-       * Add cool feature
+0.01     Sat Aug  3 10:19:28 2013
+       * Add default event handlers
+       * Add change_nick()
+       * Add reconnect when changing server.
