@@ -6,7 +6,7 @@ Mojo::IRC - IRC Client for the Mojo IOLoop
 
 =head1 VERSION
 
-0.01
+0.02
 
 =head1 SYNOPSIS
 
@@ -245,13 +245,12 @@ This event is used by IRC errors
 use Mojo::Base 'Mojo::EventEmitter';
 use Mojo::IOLoop;
 use IRC::Utils;
-use Carp qw/croak/;
 use Unicode::UTF8;
 use Parse::IRC   ();
 use Scalar::Util ();
 use constant DEBUG => $ENV{MOJO_IRC_DEBUG} ? 1 : 0;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 my $TIMEOUT        = 900;
 my @DEFAULT_EVENTS = qw/irc_ping irc_nick irc_notice irc_rpl_welcome irc_err_nicknameinuse/;
@@ -430,8 +429,8 @@ sub connect {
         },
         sub {
           my $delay = shift;
-          return $self->write(PASS => $self->pass, $delay->begin) if $self->pass;
-          $delay->begin->();
+          return $delay->begin->() unless $self->pass;
+          return $self->write(PASS => $self->pass, $delay->begin);
         },
         sub {
           $self->$cb('');

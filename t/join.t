@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 use Mojo::IRC;
-use File::Slurp ();
 use Test::More;
 
 plan skip_all => 'No test data' unless -r 't/data/irc.perl.org';
@@ -20,15 +19,15 @@ Mojo::IOLoop->server(
       read => sub {
         my($stream, $data) = @_;
         $read .= $data;
-        if($read =~ /JOIN/ and !$join) {
-          $stream->write($join = irc_data('t/data/join.mojo'));
+        if($read =~ /NICK/ and !$welcome) {
+          $stream->write($welcome = irc_data('welcome'));
         }
-        elsif ($read =~ /NICK/ and !$welcome) {
-          $stream->write($welcome = irc_data('t/data/welcome'));
+        if($read =~ /JOIN/ and !$join) {
+          $stream->write($join = irc_data('join.mojo'));
         }
       }
     );
-    $stream->write(irc_data('t/data/irc.perl.org'));
+    $stream->write(irc_data('irc.perl.org'));
   },
 );
 
@@ -74,7 +73,8 @@ Mojo::IOLoop->server(
 }
 
 sub irc_data {
-  my $data = File::Slurp::read_file(shift);
-  $data =~ s/\r?\n/\r\n/sg;
-  $data;
+  my $file = shift;
+  diag "read $file";
+  open my $FH, '<', "t/data/$file" or die $!;
+  join '', map { s/\r?\n$/\r\n/; $_ } <$FH>;
 }

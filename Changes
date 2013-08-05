@@ -1,5 +1,12 @@
 Revision history for Mojo-IRC
 
+0.02     Mon Aug  5 12:40:20 2013
+       * Remove File::Slurp as a dependency
+       * Remove Carp as a dependency
+       * Add Test::more as a dependency
+       * Made unittest more robust. The write() of NICK, USER and JOIN
+         might be received at the server at once.
+
 0.01     Sat Aug  3 10:19:28 2013
        * Add default event handlers
        * Add change_nick()
