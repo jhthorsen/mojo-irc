@@ -6,7 +6,7 @@ Mojo::IRC - IRC Client for the Mojo IOLoop
 
 =head1 VERSION
 
-0.02
+0.0201
 
 =head1 SYNOPSIS
 
@@ -250,7 +250,7 @@ use Parse::IRC   ();
 use Scalar::Util ();
 use constant DEBUG => $ENV{MOJO_IRC_DEBUG} ? 1 : 0;
 
-our $VERSION = '0.02';
+our $VERSION = '0.0201';
 
 my $TIMEOUT        = 900;
 my @DEFAULT_EVENTS = qw/irc_ping irc_nick irc_notice irc_rpl_welcome irc_err_nicknameinuse/;
