@@ -37,7 +37,7 @@ my $irc = Mojo::IRC->new(nick => 'batman', stream => dummy_stream());
   $irc->irc_rpl_welcome({ prefix => 'irc.whaterver.org' });
   is $irc->real_host, 'irc.whaterver.org', 'got real_host';
   is $irc->{ping_tid}, 123, 'recurring ping/pong is set up';
-  is $args[0], 900 - 10, '...every (900-10) second';
+  is $args[0], 60, '...every 60 second';
   $args[1]->();
   is_deeply \@main::buf, ["PING irc.whaterver.org\r\n"], 'ping irc.whaterver.org';
 }
