@@ -6,7 +6,7 @@ Mojo::IRC - IRC Client for the Mojo IOLoop
 
 =head1 VERSION
 
-0.0201
+0.03
 
 =head1 SYNOPSIS
 
@@ -254,7 +254,7 @@ use constant DEBUG => $ENV{MOJO_IRC_DEBUG} ? 1 : 0;
 use constant DEFAULT_CERT => $ENV{MOJO_IRC_CERT_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.crt';
 use constant DEFAULT_KEY => $ENV{MOJO_IRC_KEY_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.key';
 
-our $VERSION = '0.0201';
+our $VERSION = '0.03';
 
 my @DEFAULT_EVENTS = qw/irc_ping irc_nick irc_notice irc_rpl_welcome irc_err_nicknameinuse/;
 
@@ -652,5 +652,7 @@ Marcus Ramberg - C<mramberg@cpan.org>
 Jan Henning Thorsen - C<jhthorsen@cpan.org>
 
 =cut
+
+1;
 
 1;

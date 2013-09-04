@@ -2,7 +2,7 @@ NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
 VERSION
-    0.0201
+    0.03
 
 SYNOPSIS
       my $irc = Mojo::IRC->new(
@@ -229,6 +229,21 @@ ATTRIBUTES
 
   pass
     Password for authentication
+
+  tls
+      $self->tls(undef) # disable (default)
+      $self->tls({}) # enable
+
+    Default is "undef" which disable TLS. Setting this to an empty hash will
+    enable TLS and this module will load in default certs. It is also
+    possible to set custom cert/key:
+
+      $self->tls({ cert => "/path/to/client.crt", key => ... })
+
+    This can be generated using
+
+      # certtool --generate-privkey --outfile client.key
+      # certtool --generate-self-signed --load-privkey client.key --outfile client.crt
 
 METHODS
   change_nick
