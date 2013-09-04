@@ -409,7 +409,10 @@ sub connect {
       my ($method, $message);
       my $buffer = '';
 
-      $err and return $self->$cb($err);
+      if($err) {
+        delete $self->{stream_id};
+        return $self->$cb($err);
+      }
 
       $stream->timeout(0);
       $stream->on(
@@ -425,7 +428,7 @@ sub connect {
         error => sub {
           $self or return;
           $self->ioloop or return;
-          $self->ioloop->remove($self->{stream_id});
+          $self->ioloop->remove(delete $self->{stream_id});
           $self->emit(error => $_[1]);
         }
       );
