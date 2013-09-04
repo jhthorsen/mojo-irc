@@ -1,5 +1,8 @@
 Revision history for Mojo-IRC
 
+0.03
+       * Change default ping interval to every 60 seconds
+
 0.0201   Fri Aug 16 23:31:03 2013
        * Fix NAME in Makefile.PL
 

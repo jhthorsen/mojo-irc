@@ -252,7 +252,6 @@ use constant DEBUG => $ENV{MOJO_IRC_DEBUG} ? 1 : 0;
 
 our $VERSION = '0.0201';
 
-my $TIMEOUT        = 900;
 my @DEFAULT_EVENTS = qw/irc_ping irc_nick irc_notice irc_rpl_welcome irc_err_nicknameinuse/;
 
 =head1 ATTRIBUTES
@@ -379,7 +378,7 @@ sub connect {
 
       $err and return $self->$cb($err);
 
-      $stream->timeout($TIMEOUT);
+      $stream->timeout(0);
       $stream->on(
         close => sub {
           $self or return;
@@ -577,7 +576,7 @@ sub irc_rpl_welcome {
   Scalar::Util::weaken($self);
   $self->real_host($message->{prefix});
   $self->{ping_tid} ||= $self->ioloop->recurring(
-    $TIMEOUT - 10,
+    $self->{ping_pong_interval} || 60, # $self->{ping_pong_interval} is EXPERIMENTAL
     sub {
       $self->write(PING => $self->real_host);
     }
