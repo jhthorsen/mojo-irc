@@ -26,7 +26,7 @@ Mojo::IOLoop->server(
   $irc->server("localhost:$bad_port");
   $irc->connect(sub {
     my($irc, $error) = @_;
-    like $error, qr{Connection refused}i, 'could not connect';
+    like $error, qr{conn}i, 'could not connect';
     Mojo::IOLoop->stop;
   });
   Mojo::IOLoop->start;
