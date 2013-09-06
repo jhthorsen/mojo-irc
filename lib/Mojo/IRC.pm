@@ -6,7 +6,7 @@ Mojo::IRC - IRC Client for the Mojo IOLoop
 
 =head1 VERSION
 
-0.0301
+0.0302
 
 =head1 SYNOPSIS
 
@@ -77,7 +77,7 @@ This event is used by IRC errors
 
   $self->$callback({
     params => ['newnick'],
-    raw_line => ':oldnick!~someuser@hostname.com MODE somenick :+i',
+    raw_line => ':oldnick!~someuser@hostname.com NICK :newnick',
     command => 'NICK',
     prefix => 'somenick!~someuser@hostname.com'
   });
@@ -254,7 +254,7 @@ use constant DEBUG => $ENV{MOJO_IRC_DEBUG} ? 1 : 0;
 use constant DEFAULT_CERT => $ENV{MOJO_IRC_CERT_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.crt';
 use constant DEFAULT_KEY => $ENV{MOJO_IRC_KEY_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.key';
 
-our $VERSION = '0.0301';
+our $VERSION = '0.0302';
 
 my @DEFAULT_EVENTS = qw/irc_ping irc_nick irc_notice irc_rpl_welcome irc_err_nicknameinuse/;
 

@@ -2,7 +2,7 @@ NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
 VERSION
-    0.0301
+    0.0302
 
 SYNOPSIS
       my $irc = Mojo::IRC->new(
@@ -63,7 +63,7 @@ EVENTS
   irc_nick
       $self->$callback({
         params => ['newnick'],
-        raw_line => ':oldnick!~someuser@hostname.com MODE somenick :+i',
+        raw_line => ':oldnick!~someuser@hostname.com NICK :newnick',
         command => 'NICK',
         prefix => 'somenick!~someuser@hostname.com'
       });

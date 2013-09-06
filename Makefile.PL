@@ -1,6 +1,6 @@
 use ExtUtils::MakeMaker;
 WriteMakefile(
-  NAME => 'Mojo-IRC',
+  NAME => 'Mojo::IRC',
   ABSTRACT_FROM => 'lib/Mojo/IRC.pm',
   VERSION_FROM => 'lib/Mojo/IRC.pm',
   AUTHOR => 'Jan Henning Thorsen <jhthorsen@cpan.org>',
@@ -19,7 +19,7 @@ WriteMakefile(
       license => 'http://dev.perl.org/licenses/',
       homepage => 'https://metacpan.org/release/Mojo-IRC',
       bugtracker => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Mojo-IRC',
-      repository => 'git@github.com:jhthorsen/mojo-irc.git',
+      repository => 'https://github.com/jhthorsen/mojo-irc',
     },
   },
   test => {
