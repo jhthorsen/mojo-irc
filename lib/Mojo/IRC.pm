@@ -314,6 +314,14 @@ sub server {
   $self;
 }
 
+=head2 local_address
+
+Local address to bind to.
+
+=cut
+
+has local_address => undef;
+
 =head2 name
 
 The name of this IRC client. Defaults to "Mojo IRC".
@@ -382,6 +390,7 @@ second argument will be an error message or empty string on success.
 sub connect {
   my ($self, $cb) = @_;
   my ($host, $port) = split /:/, $self->server;
+  my $local_address = $self->local_address;
   my @tls;
 
   if ($self->{stream_id}) {
@@ -401,8 +410,9 @@ sub connect {
   Scalar::Util::weaken($self);
   $self->register_default_event_handlers;
   $self->{stream_id} = $self->ioloop->client(
-    address => $host,
-    port    => $port,
+    address       => $host,
+    port          => $port,
+    local_address => $local_address,
     @tls,
     sub {
       my ($loop, $err, $stream) = @_;
