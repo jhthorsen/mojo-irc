@@ -1,5 +1,10 @@
 Revision history for Mojo-IRC
 
+0.0303   Tue Oct  1 12:23:30 2013
+       * Fix irc_err_nicknameinuse: Need to try with same nick, not modify
+         the nick attribute.
+       * Marked change_nick() as deprecated.
+
 0.0302   Fri Sep  6 23:40:46 2013
        * Fix t/error.t on windows
        * Fix Makefile.PL

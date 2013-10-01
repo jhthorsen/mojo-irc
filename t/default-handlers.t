@@ -44,9 +44,17 @@ my $irc = Mojo::IRC->new(nick => 'batman', stream => dummy_stream());
 
 {
   @main::buf = ();
-  $irc->irc_err_nicknameinuse({});
-  is $irc->nick, 'batman_', 'add _ to nick on irc_err_nicknameinuse';
-  is_deeply \@main::buf, ["NICK batman_\r\n"], 'NICK batman_';
+  $irc->irc_err_nicknameinuse({
+    params => [ 'currnick', 'newnick', 'Nickname is already in use.' ],
+    command_name_lc => 'err_nicknameinuse',
+    raw_line => ':some.irc.server 433 currnick newnick :Nickname is already in use.',
+    command_name => 'ERR_NICKNAMEINUSE',
+    command => '433',
+    prefix => 'astral.shadowcat.co.uk'
+  });
+
+  is $irc->nick, 'batman', 'nick did not change on irc_err_nicknameinuse';
+  is_deeply \@main::buf, ["NICK newnick_\r\n"], 'NICK newnick_';
 }
 
 done_testing;
