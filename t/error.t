@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Mojo::IRC;
 use Test::More;
+use Errno ();
 
 my $port = Mojo::IOLoop->generate_port;
 my $irc = Mojo::IRC->new(server => "localhost:$port");
@@ -26,7 +27,7 @@ Mojo::IOLoop->server(
   $irc->server("localhost:$bad_port");
   $irc->connect(sub {
     my($irc, $error) = @_;
-    like $error, qr{conn}i, 'could not connect';
+    ok $! == Errno::ECONNREFUSED, 'could not connect';
     Mojo::IOLoop->stop;
   });
   Mojo::IOLoop->start;
