@@ -6,7 +6,7 @@ Mojo::IRC - IRC Client for the Mojo IOLoop
 
 =head1 VERSION
 
-0.0302
+0.0303
 
 =head1 SYNOPSIS
 
@@ -254,9 +254,9 @@ use constant DEBUG => $ENV{MOJO_IRC_DEBUG} ? 1 : 0;
 use constant DEFAULT_CERT => $ENV{MOJO_IRC_CERT_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.crt';
 use constant DEFAULT_KEY => $ENV{MOJO_IRC_KEY_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.key';
 
-our $VERSION = '0.0302';
+our $VERSION = '0.0303';
 
-my @DEFAULT_EVENTS = qw/irc_ping irc_nick irc_notice irc_rpl_welcome irc_err_nicknameinuse/;
+my @DEFAULT_EVENTS = qw( irc_ping irc_nick irc_notice irc_rpl_welcome irc_err_nicknameinuse );
 
 =head1 ATTRIBUTES
 
@@ -354,18 +354,20 @@ has tls => undef;
 
 =head2 change_nick
 
-Change IRC nick name. This command will change the L</nick> attribute if not
-connected to the server.
+This will be deprecated. Use the code below instead:
+
+  $self->write(NICK => $new_nick);
 
 =cut
 
 sub change_nick {
   my ($self, $nick) = @_;
-  my $old = $self->nick // '';
 
-  return $self unless defined $nick;
-  return $self if $old and $old eq $nick;
-  $self->write(NICK => $nick, sub { $_[1] and $self->nick($nick) });
+  warn "change_nick() is deprecated";
+
+  return $self unless length $nick;
+  return $self if $self->nick eq $nick;
+  $self->write(NICK => $nick);
   $self;
 }
 
@@ -620,16 +622,15 @@ sub irc_rpl_welcome {
 
 =head2 irc_err_nicknameinuse
 
-Tries to register with the same nick as L</nick>, only with an extra underscore
-added. The new nick will be stored in L</nick>.
+This handler will add "_" to the failed nick before trying to register again.
 
 =cut
 
 sub irc_err_nicknameinuse {
   my ($self, $message) = @_;
+  my $nick = $message->{params}[1];
 
-  $self->nick($self->nick . '_');
-  $self->write(NICK => $self->nick);
+  $self->write(NICK => $nick .'_');
 }
 
 sub DESTROY {

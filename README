@@ -2,7 +2,7 @@ NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
 VERSION
-    0.0302
+    0.0303
 
 SYNOPSIS
       my $irc = Mojo::IRC->new(
@@ -247,8 +247,9 @@ ATTRIBUTES
 
 METHODS
   change_nick
-    Change IRC nick name. This command will change the "nick" attribute if
-    not connected to the server.
+    This will be deprecated. Use the code below instead:
+
+      $self->write(NICK => $new_nick);
 
   connect
       $self->connect(\&callback);
@@ -293,8 +294,8 @@ DEFAULT EVENT HANDLERS
     requests to prevent timeout.
 
   irc_err_nicknameinuse
-    Tries to register with the same nick as "nick", only with an extra
-    underscore added. The new nick will be stored in "nick".
+    This handler will add "_" to the failed nick before trying to register
+    again.
 
 COPYRIGHT
     This program is free software, you can redistribute it and/or modify it

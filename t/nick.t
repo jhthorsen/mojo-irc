@@ -3,31 +3,9 @@ use warnings;
 use Mojo::IRC;
 use Test::More;
 
-plan tests => 10;
+plan tests => 2;
 
-my $irc = Mojo::IRC->new(nick => 'test123', stream => dummy_stream());
-
-{
-  is $irc->change_nick, $irc, 'invalid change_nick';
-  is $irc->change_nick('test123'), $irc, 'change_nick to same nick';
-  is_deeply \@main::buf, [], 'no data written to irc server when no change';
-
-  is $irc->change_nick('fooman'), $irc, 'change_nick to fooman';
-  is $irc->nick, 'test123', 'nick() is still test123';
-  is_deeply(
-    \@main::buf,
-    ["NICK fooman\r\n"],
-    'change nick command written to irc',
-  );
-}
-
-{
-  @main::buf = ();
-  local $irc->{stream} = undef;
-  $irc->change_nick('fooman');
-  is_deeply \@main::buf, [], 'no data written to irc server when not connected';
-  is $irc->nick, 'fooman', 'nick() is fooman since not conneted';
-}
+my $irc = Mojo::IRC->new(nick => 'fooman', stream => dummy_stream());
 
 {
   $irc->irc_nick({
