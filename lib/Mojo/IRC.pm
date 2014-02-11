@@ -441,7 +441,7 @@ sub connect {
 
           $buffer .= $message;
 
-          while ($buffer =~ s/^([^\r\n]+)\r\n//m) {
+          while ($buffer =~ s/^([^\r?\n\r?]+)\r?\n\r?//m) {
             warn "[$self->{debug_key}] >>> $1\n" if DEBUG;
             $message = Parse::IRC::parse_irc($1);
             $method = $message->{command} || '';
@@ -459,15 +459,15 @@ sub connect {
       $self->{stream} = $stream;
       $self->ioloop->delay(
         sub {
+          my $delay = shift;
+          return $delay->begin->() unless $self->pass;
+          return $self->write(PASS => $self->pass, $delay->begin);
+        },
+        sub {
           $self->write(NICK => $self->nick, shift->begin);
         },
         sub {
           $self->write(USER => $self->user, 8, '*', ':' . $self->name, shift->begin);
-        },
-        sub {
-          my $delay = shift;
-          return $delay->begin->() unless $self->pass;
-          return $self->write(PASS => $self->pass, $delay->begin);
         },
         sub {
           $self->$cb('');
