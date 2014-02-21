@@ -36,13 +36,13 @@ Mojo::IRC - IRC Client for the Mojo IOLoop
 
 =head1 DESCRIPTION
 
+L<Mojo::IRC> is a non-blocking IRC client using L<Mojo::IOLoop> from the
+wonderful L<Mojolicious> framework.
+
+If features IPv6 and TLS, with additional optional modules:
+L<IO::Socket::IP> and L<IO::Socket::SSL>.
+
 This class inherit from L<Mojo::EventEmitter>.
-
-TODO:
-
-  * Authentication with password
-  * SSL
-  * use IRC::Utils qw/ decode_irc /;
 
 =head1 EVENTS
 
