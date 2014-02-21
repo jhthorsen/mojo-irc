@@ -1,5 +1,8 @@
 Revision history for Mojo-IRC
 
+0.05
+       * Add parser() attribute
+
 0.04     Fri Feb 21 18:23:16 2014
        * Fix PASS need to be sent before NICK and USER
          http://www.irchelp.org/irchelp/rfc/chapter4.html#c4_1_1

@@ -322,6 +322,18 @@ The name of this IRC client. Defaults to "Mojo IRC".
 
 has name => 'Mojo IRC';
 
+=head2 parser
+
+  $self = $self->parser($obj);
+  $self = $self->parser(Parse::IRC->new(ctcp => 1));
+  $obj = $self->parser;
+
+Holds a L<Parse::IRC> object by default.
+
+=cut
+
+has parser => sub { Parse::IRC->new; };
+
 =head2 pass
 
 Password for authentication
@@ -443,7 +455,7 @@ sub connect {
 
           while ($buffer =~ s/^([^\r\n]+)\r\n//m) {
             warn "[$self->{debug_key}] >>> $1\n" if DEBUG;
-            $message = Parse::IRC::parse_irc($1);
+            $message = $self->parser->parse($1);
             $method = $message->{command} || '';
 
             if ($method =~ /^\d+$/) {
