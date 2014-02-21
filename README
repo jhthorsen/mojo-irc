@@ -2,7 +2,7 @@ NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
 VERSION
-    0.04
+    0.05
 
 SYNOPSIS
       my $irc = Mojo::IRC->new(
@@ -30,13 +30,26 @@ SYNOPSIS
       Mojo::IOLoop->start;
 
 DESCRIPTION
+    Mojo::IRC is a non-blocking IRC client using Mojo::IOLoop from the
+    wonderful Mojolicious framework.
+
+    If features IPv6 and TLS, with additional optional modules:
+    IO::Socket::IP and IO::Socket::SSL.
+
+    By default this module will only emit standard IRC events, but by
+    settings "parser" to a custom object it will also emit CTCP events.
+    Example:
+
+      my $irc = Mojo::IRC->new;
+      $irc->parser(Parse::IRC->new(ctcp => 1);
+      $irc->on(ctcp_action => sub {
+        # ...
+      });
+
+    It will also set up some default events: "ctcp_ping", "ctcp_time", and
+    "ctcp_version".
+
     This class inherit from Mojo::EventEmitter.
-
-    TODO:
-
-      * Authentication with password
-      * SSL
-      * use IRC::Utils qw/ decode_irc /;
 
 EVENTS
   close
@@ -227,6 +240,13 @@ ATTRIBUTES
   name
     The name of this IRC client. Defaults to "Mojo IRC".
 
+  parser
+      $self = $self->parser($obj);
+      $self = $self->parser(Parse::IRC->new(ctcp => 1));
+      $obj = $self->parser;
+
+    Holds a Parse::IRC object by default.
+
   pass
     Password for authentication
 
@@ -258,6 +278,17 @@ METHODS
     &callback will be called once connected or if it fail to connect. The
     second argument will be an error message or empty string on success.
 
+  ctcp
+      $str = $self->ctcp(@str);
+
+    This message will quote CTCP messages. Example:
+
+      $self->write(PRIVMSG => nickname => $self->ctcp(TIME => time));
+
+    The code above will write this message to IRC server:
+
+      PRIVMSG nickname :\001TIME 1393006707\001
+
   disconnect
       $self->disconnect(\&callback);
 
@@ -279,6 +310,25 @@ METHODS
     description on error.
 
 DEFAULT EVENT HANDLERS
+  ctcp_ping
+    Will respond to the sender with the difference in time.
+
+      Ping reply from $sender: 0.53 second(s)
+
+  ctcp_time
+    Will respond to the sender with the current localtime. Example:
+
+      TIME Fri Feb 21 18:56:50 2014
+
+    NOTE! The localtime format may change.
+
+  ctcp_version
+    Will respond to the sender with:
+
+      VERSION Mojo-IRC $VERSION
+
+    NOTE! Additional information may be added later on.
+
   irc_nick
     Used to update the "nick" attribute when the nick has changed.
 
