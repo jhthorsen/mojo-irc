@@ -42,6 +42,19 @@ wonderful L<Mojolicious> framework.
 If features IPv6 and TLS, with additional optional modules:
 L<IO::Socket::IP> and L<IO::Socket::SSL>.
 
+By default this module will only emit standard IRC events, but by
+settings L</parser> to a custom object it will also emit CTCP events.
+Example:
+
+  my $irc = Mojo::IRC->new;
+  $irc->parser(Parse::IRC->new(ctcp => 1);
+  $irc->on(ctcp_action => sub {
+    # ...
+  });
+
+It will also set up some default events: L</ctcp_ping>, L</ctcp_time>,
+and L</ctcp_version>.
+
 This class inherit from L<Mojo::EventEmitter>.
 
 =head1 EVENTS
@@ -256,7 +269,12 @@ use constant DEFAULT_KEY => $ENV{MOJO_IRC_KEY_FILE} || catfile dirname(__FILE__)
 
 our $VERSION = '0.04';
 
-my @DEFAULT_EVENTS = qw( irc_ping irc_nick irc_notice irc_rpl_welcome irc_err_nicknameinuse );
+my %CTCP_QUOTE = ( "\012" => 'n', "\015" => 'r', "\0" => '0', "\cP" => "\cP" );
+
+my @DEFAULT_EVENTS = qw(
+  irc_ping irc_nick irc_notice irc_rpl_welcome irc_err_nicknameinuse
+  ctcp_ping ctcp_time ctcp_version
+);
 
 =head1 ATTRIBUTES
 
@@ -461,9 +479,12 @@ sub connect {
             if ($method =~ /^\d+$/) {
               $method = IRC::Utils::numeric_to_name($method);
             }
+            if ($method !~ /^CTCP_/) {
+              $method = "irc_$method";
+            }
 
-            $self->emit_safe(lc('irc_' . $method) => $message);
-            $self->emit_safe('irc_error' => $message) if $method =~ m/^err_/i;
+            $self->emit_safe(lc $method, $message);
+            $self->emit_safe('irc_error', $message) if $method =~ m/^err_/i;
           }
         }
       );
@@ -486,6 +507,28 @@ sub connect {
       );
     }
   );
+}
+
+=head2 ctcp
+
+  $str = $self->ctcp(@str);
+
+This message will quote CTCP messages. Example:
+
+  $self->write(PRIVMSG => nickname => $self->ctcp(TIME => time));
+
+The code above will write this message to IRC server:
+
+  PRIVMSG nickname :\001TIME 1393006707\001
+
+=cut
+
+sub ctcp {
+  my $self = shift;
+  local $_ = join ' ', @_;
+  s/([\012\015\0\cP])/\cP$CTCP_QUOTE{$1}/g;
+  s/\001/\\a/g;
+  ":\001${_}\001";
 }
 
 =head2 disconnect
@@ -569,6 +612,58 @@ sub write {
 }
 
 =head1 DEFAULT EVENT HANDLERS
+
+=head2 ctcp_ping
+
+Will respond to the sender with the difference in time.
+
+  Ping reply from $sender: 0.53 second(s)
+
+=cut
+
+sub ctcp_ping {
+  my ($self, $message) = @_;
+  my $t0 = $message->{params}[1] || '';
+
+  return $self unless $t0 =~ /^\d+$/;
+  return $self->write(
+    'NOTICE',
+    $message->{params}[0],
+    $self->ctcp(sprintf "Ping reply from %s: %s second(s)", $self->nick, time - $t0),
+  );
+}
+
+=head2 ctcp_time
+
+Will respond to the sender with the current localtime. Example:
+
+  TIME Fri Feb 21 18:56:50 2014
+
+NOTE! The localtime format may change.
+
+=cut
+
+sub ctcp_time {
+  my ($self, $message) = @_;
+
+  $self->write(NOTICE => $message->{params}[0], $self->ctcp(TIME => scalar localtime));
+}
+
+=head2 ctcp_version
+
+Will respond to the sender with:
+
+  VERSION Mojo-IRC $VERSION
+
+NOTE! Additional information may be added later on.
+
+=cut
+
+sub ctcp_version {
+  my ($self, $message) = @_;
+
+  $self->write(NOTICE => $message->{params}[0], $self->ctcp(VERSION => 'Mojo-IRC', $VERSION));
+}
 
 =head2 irc_nick
 
@@ -667,7 +762,5 @@ Marcus Ramberg - C<mramberg@cpan.org>
 Jan Henning Thorsen - C<jhthorsen@cpan.org>
 
 =cut
-
-1;
 
 1;
