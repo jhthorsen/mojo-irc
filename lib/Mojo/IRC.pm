@@ -282,63 +282,13 @@ my @DEFAULT_EVENTS = qw(
 
 Holds an instance of L<Mojo::IOLoop>.
 
-=cut
-
-has ioloop => sub { Mojo::IOLoop->singleton };
-
-=head2 real_host
-
-Will be set by L</irc_rpl_welcome>. Holds the actual hostname of the IRC
-server that we are connected to.
-
-=cut
-
-has real_host => '';
-
-=head2 user
-
-IRC username.
-
-=cut
-
-has user => '';
-
-=head2 nick
-
-IRC nick name accessor.
-
-=cut
-
-has nick => '';
-
-=head2 server
-
-Server name and optionally a port to connect to. Changing this while connected
-to the IRC server will issue a reconnect.
-
-=cut
-
-
-sub server {
-  my ($self, $server) = @_;
-  my $old = $self->{server} || '';
-
-  Scalar::Util::weaken($self);
-  return $old unless defined $server;
-  return $self if $old and $old eq $server;
-  $self->{server} = $server;
-  return $self unless $self->{stream_id};
-  $self->disconnect(sub { $self->connect(sub {}) });
-  $self;
-}
-
 =head2 name
 
 The name of this IRC client. Defaults to "Mojo IRC".
 
-=cut
+=head2 nick
 
-has name => 'Mojo IRC';
+IRC nick name accessor.
 
 =head2 parser
 
@@ -348,17 +298,19 @@ has name => 'Mojo IRC';
 
 Holds a L<Parse::IRC> object by default.
 
-=cut
-
-has parser => sub { Parse::IRC->new; };
-
 =head2 pass
 
 Password for authentication
 
-=cut
+=head2 real_host
 
-has 'pass';
+Will be set by L</irc_rpl_welcome>. Holds the actual hostname of the IRC
+server that we are connected to.
+
+=head2 server
+
+Server name and optionally a port to connect to. Changing this while connected
+to the IRC server will issue a reconnect.
 
 =head2 tls
 
@@ -376,9 +328,33 @@ This can be generated using
   # certtool --generate-privkey --outfile client.key
   # certtool --generate-self-signed --load-privkey client.key --outfile client.crt
 
+=head2 user
+
+IRC username.
+
 =cut
 
+has ioloop => sub { Mojo::IOLoop->singleton };
+has name => 'Mojo IRC';
+has nick => '';
+has parser => sub { Parse::IRC->new; };
+has pass => '';
+has real_host => '';
 has tls => undef;
+has user => '';
+
+sub server {
+  my ($self, $server) = @_;
+  my $old = $self->{server} || '';
+
+  Scalar::Util::weaken($self);
+  return $old unless defined $server;
+  return $self if $old and $old eq $server;
+  $self->{server} = $server;
+  return $self unless $self->{stream_id};
+  $self->disconnect(sub { $self->connect(sub {}) });
+  $self;
+}
 
 =head1 METHODS
 
