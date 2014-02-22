@@ -35,9 +35,21 @@ Mojo::IOLoop->server(
 $irc->parser(Parse::IRC->new(ctcp => 1));
 
 {
-  $irc->on(ctcp_action => sub { diag $_[1]; });
+  my $action;
+  $irc->on(ctcp_action => sub { $action = $_[1]; });
   $irc->connect(sub { diag $_[1] || 'Connected'; });
   Mojo::IOLoop->start;
+
+  delete $action->{raw_line};
+  is_deeply(
+    $action,
+    {
+      command => 'CTCP_ACTION',
+      params => [qw( #channel msg1 )],
+      prefix => 'abc-123',
+    },
+    'CTCP ACTION',
+  );
 
   is $read, <<"  READ", "got correct response from client";
 NICK ctcpman\r

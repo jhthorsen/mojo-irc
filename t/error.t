@@ -27,7 +27,7 @@ Mojo::IOLoop->server(
   $irc->server("localhost:$bad_port");
   $irc->connect(sub {
     my($irc, $error) = @_;
-    ok $! == Errno::ECONNREFUSED, 'could not connect';
+    is int($!), Errno::ECONNREFUSED, "could not connect ($!) ($error)";
     Mojo::IOLoop->stop;
   });
   Mojo::IOLoop->start;

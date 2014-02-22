@@ -1,5 +1,9 @@
 Revision history for Mojo-IRC
 
+0.0501
+       * Add debug info to figure out failing error.t
+         http://www.cpantesters.org/cpan/report/3758769c-6bf4-1014-9dd5-8faa6c3f6a79
+
 0.05     Fri Feb 21 20:52:39 2014
        * Add parser() attribute
        * Add ctcp() method to quote CTCP messages

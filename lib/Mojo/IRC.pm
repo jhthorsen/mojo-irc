@@ -492,14 +492,10 @@ sub connect {
       $self->{stream} = $stream;
       $self->ioloop->delay(
         sub {
-          return $self->write(PASS => $self->pass, shift->begin) if length $self->pass;
-          return shift->begin->();
-        },
-        sub {
-          $self->write(NICK => $self->nick, shift->begin);
-        },
-        sub {
-          $self->write(USER => $self->user, 8, '*', ':' . $self->name, shift->begin);
+          my $delay = shift;
+          $self->write(PASS => $self->pass, $delay->begin) if length $self->pass;
+          $self->write(NICK => $self->nick, $delay->begin);
+          $self->write(USER => $self->user, 8, '*', ':' . $self->name, $delay->begin);
         },
         sub {
           $self->$cb('');
