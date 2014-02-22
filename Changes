@@ -1,6 +1,6 @@
 Revision history for Mojo-IRC
 
-0.0501
+0.0501   Sat Feb 22 09:57:25 2014
        * Add debug info to figure out failing error.t
          http://www.cpantesters.org/cpan/report/3758769c-6bf4-1014-9dd5-8faa6c3f6a79
 
