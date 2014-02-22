@@ -1,5 +1,9 @@
 Revision history for Mojo-IRC
 
+0.0601   Sat Feb 22 17:43:57 2014
+       * Fix missing ERR_ events.
+       * Started DEPRECATION process for irc_err_xxx events.
+
 0.06     Sat Feb 22 11:54:38 2014
        * Allow offline mode with MOJO_IRC_OFFLINE=1
 

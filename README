@@ -2,7 +2,7 @@ NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
 VERSION
-    0.06
+    0.0601
 
 SYNOPSIS
       my $irc = Mojo::IRC->new(
@@ -90,9 +90,17 @@ EVENTS
     Called when the client has closed the connection.
 
   irc_error
-    This event is used by IRC errors
+    This event is used to emit IRC errors. It is also possible for finer
+    granularity to listen for events such as "err_nicknameinuse".
 
-  irc_err_nicknameinuse
+  err_nicknameinuse
+      $self->$callback({
+        command => 401,
+        params => [ 'nick', 'othernick', 'No such nick/channel' ],
+        prefix => '1.2.3.4',
+        raw_line => ':1.2.3.4 401 nick othernick :No such nick/channel',
+      });
+
   irc_join
       $self->$callback({
         params => ['#html'],
@@ -371,7 +379,7 @@ DEFAULT EVENT HANDLERS
     Used to get the hostname of the server. Will also set up automatic PING
     requests to prevent timeout.
 
-  irc_err_nicknameinuse
+  err_nicknameinuse
     This handler will add "_" to the failed nick before trying to register
     again.
 

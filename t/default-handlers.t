@@ -10,7 +10,7 @@ my $irc = Mojo::IRC->new(nick => 'batman', stream => dummy_stream());
 {
   $irc->register_default_event_handlers;
 
-  for my $event (qw/ irc_ping irc_nick irc_notice irc_rpl_welcome irc_err_nicknameinuse /) {
+  for my $event (qw/ irc_ping irc_nick irc_notice irc_rpl_welcome err_nicknameinuse /) {
     ok $irc->has_subscribers($event), "registered $event";
   }
 }
@@ -44,7 +44,7 @@ my $irc = Mojo::IRC->new(nick => 'batman', stream => dummy_stream());
 
 {
   @main::buf = ();
-  $irc->irc_err_nicknameinuse({
+  $irc->err_nicknameinuse({
     params => [ 'currnick', 'newnick', 'Nickname is already in use.' ],
     command_name_lc => 'err_nicknameinuse',
     raw_line => ':some.irc.server 433 currnick newnick :Nickname is already in use.',
@@ -53,7 +53,7 @@ my $irc = Mojo::IRC->new(nick => 'batman', stream => dummy_stream());
     prefix => 'astral.shadowcat.co.uk'
   });
 
-  is $irc->nick, 'batman', 'nick did not change on irc_err_nicknameinuse';
+  is $irc->nick, 'batman', 'nick did not change on err_nicknameinuse';
   is_deeply \@main::buf, ["NICK newnick_\r\n"], 'NICK newnick_';
 }
 

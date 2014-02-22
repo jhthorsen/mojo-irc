@@ -56,6 +56,4 @@ Mojo::IOLoop->server(
   is $status, 'connected', 'could still connect';
 }
 
-
-
 done_testing;

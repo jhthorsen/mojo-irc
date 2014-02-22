@@ -6,7 +6,7 @@ Mojo::IRC - IRC Client for the Mojo IOLoop
 
 =head1 VERSION
 
-0.06
+0.0601
 
 =head1 SYNOPSIS
 
@@ -101,9 +101,17 @@ Called when the client has closed the connection.
 
 =head2 irc_error
 
-This event is used by IRC errors
+This event is used to emit IRC errors. It is also possible for finer
+granularity to listen for events such as L</err_nicknameinuse>.
 
-=head2 irc_err_nicknameinuse
+=head2 err_nicknameinuse
+
+  $self->$callback({
+    command => 401,
+    params => [ 'nick', 'othernick', 'No such nick/channel' ],
+    prefix => '1.2.3.4',
+    raw_line => ':1.2.3.4 401 nick othernick :No such nick/channel',
+  });
 
 =head2 irc_join
 
@@ -296,12 +304,12 @@ use constant DEFAULT_CERT => $ENV{MOJO_IRC_CERT_FILE} || catfile dirname(__FILE_
 use constant DEFAULT_KEY => $ENV{MOJO_IRC_KEY_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.key';
 use constant OFFLINE => $ENV{MOJO_IRC_OFFLINE} ? 1 : 0;
 
-our $VERSION = '0.06';
+our $VERSION = '0.0601';
 
 my %CTCP_QUOTE = ( "\012" => 'n', "\015" => 'r', "\0" => '0', "\cP" => "\cP" );
 
 my @DEFAULT_EVENTS = qw(
-  irc_ping irc_nick irc_notice irc_rpl_welcome irc_err_nicknameinuse
+  irc_ping irc_nick irc_notice irc_rpl_welcome err_nicknameinuse
   ctcp_ping ctcp_time ctcp_version
 );
 
@@ -721,13 +729,13 @@ sub irc_rpl_welcome {
   );
 }
 
-=head2 irc_err_nicknameinuse
+=head2 err_nicknameinuse
 
 This handler will add "_" to the failed nick before trying to register again.
 
 =cut
 
-sub irc_err_nicknameinuse {
+sub err_nicknameinuse {
   my ($self, $message) = @_;
   my $nick = $message->{params}[1];
 
@@ -764,8 +772,12 @@ sub _read {
       $method = "irc_$method";
     }
 
-    $self->emit_safe(lc $method, $message);
-    $self->emit_safe('irc_error', $message) if $method =~ m/^err_/i;
+    $self->emit_safe(lc($method), $message);
+
+    if($method =~ /^irc_(ERR_.*)/i) {
+      $self->emit_safe(lc($1) => $message);
+      $self->emit_safe(irc_error => $message);
+    }
   }
 }
 
