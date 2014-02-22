@@ -2,7 +2,7 @@ NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
 VERSION
-    0.0501
+    0.06
 
 SYNOPSIS
       my $irc = Mojo::IRC->new(
@@ -50,6 +50,34 @@ DESCRIPTION
     "ctcp_version".
 
     This class inherit from Mojo::EventEmitter.
+
+TESTING
+    Set MOJO_IRC_OFFLINE to allow testing without a remote host. Example:
+
+      BEGIN { $ENV{MOJO_IRC_OFFLINE} = 1 }
+      use Mojo::Base -strict;
+      use Mojo::IRC;
+      use Test::More;
+
+      my $irc = Mojo::IRC->new(nick => 'batman', server => 'test.com');
+      $irc->parser(Parse::IRC->new(ctcp => 1));
+
+      $irc->on(
+        ctcp_avatar => sub {
+          my($irc, $message) = @_;
+          $irc->write(
+            NOTICE => $message->{params}[0],
+            $irc->ctcp(AVATAR => 'https://graph.facebook.com/jhthorsen/picture'),
+          );
+        }
+      );
+
+      $irc->from_irc_server(":abc-123 PRIVMSG batman :\x{1}AVATAR\x{1}\r\n");
+      like $irc->{to_irc_server}, qr{NOTICE batman :\x{1}AVATAR https://graph.facebook.com/jhthorsen/picture\x{1}\r\n}, 'sent AVATAR';
+      done_testing;
+
+    NOTE! "from_irc_server()" is only available when "MOJO_IRC_OFFLINE" is
+    set.
 
 EVENTS
   close
@@ -223,22 +251,11 @@ ATTRIBUTES
   ioloop
     Holds an instance of Mojo::IOLoop.
 
-  real_host
-    Will be set by "irc_rpl_welcome". Holds the actual hostname of the IRC
-    server that we are connected to.
-
-  user
-    IRC username.
+  name
+    The name of this IRC client. Defaults to "Mojo IRC".
 
   nick
     IRC nick name accessor.
-
-  server
-    Server name and optionally a port to connect to. Changing this while
-    connected to the IRC server will issue a reconnect.
-
-  name
-    The name of this IRC client. Defaults to "Mojo IRC".
 
   parser
       $self = $self->parser($obj);
@@ -249,6 +266,14 @@ ATTRIBUTES
 
   pass
     Password for authentication
+
+  real_host
+    Will be set by "irc_rpl_welcome". Holds the actual hostname of the IRC
+    server that we are connected to.
+
+  server
+    Server name and optionally a port to connect to. Changing this while
+    connected to the IRC server will issue a reconnect.
 
   tls
       $self->tls(undef) # disable (default)
@@ -265,6 +290,9 @@ ATTRIBUTES
       # certtool --generate-privkey --outfile client.key
       # certtool --generate-self-signed --load-privkey client.key --outfile client.crt
 
+  user
+    IRC username.
+
 METHODS
   change_nick
     This will be deprecated. Use the code below instead:
@@ -272,7 +300,7 @@ METHODS
       $self->write(NICK => $new_nick);
 
   connect
-      $self->connect(\&callback);
+      $self = $self->connect(\&callback);
 
     Will login to the IRC "server" and call &callback once connected. The
     &callback will be called once connected or if it fail to connect. The
