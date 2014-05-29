@@ -4,19 +4,12 @@ use Test::More;
 
 plan skip_all => 'reason' if 0;
 
-my $port = Mojo::IOLoop->generate_port;
 my $irc = Mojo::IRC->new;
 my $written = '';
 my $err;
 
-$irc->name("the end");
-$irc->nick("fooman");
-$irc->pass("s4cret");
-$irc->server("localhost:$port");
-$irc->user("foo");
-
-Mojo::IOLoop->server(
-  { port => $port },
+my $server = Mojo::IOLoop->server(
+  { address => '127.0.0.1' },
   sub {
     my($self, $stream) = @_;
     my($join, $welcome);
@@ -27,6 +20,14 @@ Mojo::IOLoop->server(
     });
   },
 );
+
+my $port = Mojo::IOLoop->acceptor($server)->handle->sockport;
+
+$irc->name("the end");
+$irc->nick("fooman");
+$irc->pass("s4cret");
+$irc->server("localhost:$port");
+$irc->user("foo");
 
 $irc->connect(sub { $err = pop; });
 Mojo::IOLoop->start;

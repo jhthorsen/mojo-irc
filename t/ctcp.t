@@ -8,12 +8,10 @@ use Test::More;
   require Mojo::IRC;
 }
 
-my $port = Mojo::IOLoop->generate_port;
-my $irc = Mojo::IRC->new(nick => "ctcpman", user => "u1", server => "localhost:$port");
 my $read = '';
 
-Mojo::IOLoop->server(
-  { port => $port },
+my $server = Mojo::IOLoop->server(
+  { address => '127.0.0.1' },
   sub {
     my($self, $stream) = @_;
 
@@ -32,6 +30,10 @@ Mojo::IOLoop->server(
   },
 );
 
+my $port = Mojo::IOLoop->acceptor($server)->handle->sockport;
+
+my $irc = Mojo::IRC->new(nick => "ctcpman", user => "u1", server => "localhost:$port");
+
 $irc->parser(Parse::IRC->new(ctcp => 1));
 
 {
@@ -41,6 +43,7 @@ $irc->parser(Parse::IRC->new(ctcp => 1));
   Mojo::IOLoop->start;
 
   delete $action->{raw_line};
+  no warnings 'qw';
   is_deeply(
     $action,
     {
