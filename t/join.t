@@ -6,12 +6,11 @@ use Test::More;
 plan skip_all => 'No test data' unless -r 't/data/irc.perl.org';
 plan tests => 9;
 
-my $port = Mojo::IOLoop->generate_port;
 my $irc = Mojo::IRC->new;
 my $read = '';
 
-Mojo::IOLoop->server(
-  { port => $port },
+my $server = Mojo::IOLoop->server(
+  { address => '127.0.0.1' },
   sub {
     my($self, $stream) = @_;
     my($join, $welcome);
@@ -30,6 +29,8 @@ Mojo::IOLoop->server(
     $stream->write(irc_data('irc.perl.org'));
   },
 );
+
+my $port = Mojo::IOLoop->acceptor($server)->handle->sockport;
 
 {
   isa_ok($irc, 'Mojo::IRC', 'Constructor returns right object');
