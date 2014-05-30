@@ -1,6 +1,4 @@
-use strict;
-use warnings;
-use Test::More;
+use t::Helper;
 
 {
   *Mojo::IRC::localtime = sub { 'Fri Feb 21 19:35:24 2014' };
@@ -8,7 +6,7 @@ use Test::More;
   require Mojo::IRC;
 }
 
-my $port = Mojo::IOLoop->generate_port;
+my $port = generate_port();
 my $irc = Mojo::IRC->new(nick => "ctcpman", user => "u1", server => "localhost:$port");
 my $read = '';
 

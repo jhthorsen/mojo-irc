@@ -1,10 +1,9 @@
-use Mojo::Base -strict;
+use t::Helper;
 use Mojo::IRC;
-use Test::More;
 
 plan skip_all => 'reason' if 0;
 
-my $port = Mojo::IOLoop->generate_port;
+my $port = generate_port();
 my $irc = Mojo::IRC->new;
 my $written = '';
 my $err;

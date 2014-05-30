@@ -1,10 +1,8 @@
-use strict;
-use warnings;
+use t::Helper;
 use Mojo::IRC;
-use Test::More;
 use Errno ();
 
-my $port = Mojo::IOLoop->generate_port;
+my $port = generate_port();
 my $irc = Mojo::IRC->new(server => "localhost:$port");
 my $status = 'YIKES';
 
@@ -23,7 +21,7 @@ Mojo::IOLoop->server(
 }
 
 {
-  my $bad_port = Mojo::IOLoop->generate_port;
+  my $bad_port = generate_port();
   $irc->server("localhost:$bad_port");
   $irc->connect(sub {
     my($irc, $error) = @_;

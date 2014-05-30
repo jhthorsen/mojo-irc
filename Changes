@@ -1,5 +1,8 @@
 Revision history for Mojo-IRC
 
+0.07
+       * Fix Mojo::IRC for Mojolicious 5.0
+
 0.0601   Sat Feb 22 17:43:57 2014
        * Fix missing ERR_ events.
        * Started DEPRECATION process for irc_err_xxx events.

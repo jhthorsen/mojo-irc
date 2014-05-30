@@ -1,12 +1,10 @@
-use strict;
-use warnings;
+use t::Helper;
 use Mojo::IRC;
-use Test::More;
 
 plan skip_all => 'No test data' unless -r 't/data/irc.perl.org';
 plan tests => 9;
 
-my $port = Mojo::IOLoop->generate_port;
+my $port = generate_port();
 my $irc = Mojo::IRC->new;
 my $read = '';
 
