@@ -3,6 +3,7 @@ Revision history for Mojo-IRC
 0.08
        * Will also emit numeric events
        * Move events out of main module documentation
+       * Deprecated irc_err_xxx events
 
 0.07     Fri May 30 07:46:58 2014
        * Fix Mojo::IRC for Mojolicious 5.0

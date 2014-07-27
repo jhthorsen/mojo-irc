@@ -9,7 +9,6 @@ my @err;
 $irc->parser(Parse::IRC->new(ctcp => 1));
 
 $irc->on(irc_error => sub { push @err, $_[1] });
-$irc->on(irc_err_nosuchnick => sub { push @err, $_[1] }); # WILL BE DEPRECATED
 $irc->on(err_nosuchnick => sub { push @err, $_[1] });
 
 $irc->connect(sub {});
@@ -25,7 +24,7 @@ is_deeply(
         prefix => 'hostname',
         raw_line => ':hostname 401 jhthorsen convos-gh :No such nick/channel',
       },
-    } 1..3
+    } 1..2
   ],
   'got irc_error events',
 );

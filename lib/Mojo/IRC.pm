@@ -599,16 +599,15 @@ sub _read {
       $self->emit_safe("irc_$method" => $message);
       $method = IRC::Utils::numeric_to_name($method) or return;
     }
-    if ($method !~ /^CTCP_/) {
+
+    if ($method =~ /^ERR_/) {
+      $self->emit_safe(irc_error => $message);
+    }
+    elsif ($method !~ /^CTCP_/) {
       $method = "irc_$method";
     }
 
-    $self->emit_safe(lc($method), $message);
-
-    if($method =~ /^irc_(ERR_.*)/i) {
-      $self->emit_safe(lc($1) => $message);
-      $self->emit_safe(irc_error => $message);
-    }
+    $self->emit_safe(lc($method) => $message);
   }
 }
 
