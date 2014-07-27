@@ -766,7 +766,8 @@ sub _read {
     my $method = $message->{command} || '';
 
     if ($method =~ /^\d+$/) {
-      $method = IRC::Utils::numeric_to_name($method);
+      $self->emit_safe("irc_$method" => $message);
+      $method = IRC::Utils::numeric_to_name($method) or return;
     }
     if ($method !~ /^CTCP_/) {
       $method = "irc_$method";
