@@ -95,199 +95,29 @@ Emitted once the connection to the server close.
 
 Emitted once the stream emits an error.
 
-=head2 irc_close
+=head2 err_event_name
 
-Called when the client has closed the connection.
+Events that start with "err_" is emitted when there is an IRC response that
+indicate an error. See L<Mojo::IRC::Events> for example events.
+
+=head2 ctcp_event_name
+
+Events that start with "ctcp_" is emitted if the L</parser> can understand
+CTCP messages, and there is an CTCP response.
+
+  $self->parser(Parse::IRC->new(ctcp => 1);
+
+See L<Mojo::IRC::Events> for example events.
 
 =head2 irc_error
 
 This event is used to emit IRC errors. It is also possible for finer
-granularity to listen for events such as L</err_nicknameinuse>.
+granularity to listen for events such as C<err_nicknameinuse>.
 
-=head2 err_nicknameinuse
+=head2 irc_event_name
 
-  $self->$callback({
-    command => 401,
-    params => [ 'nick', 'othernick', 'No such nick/channel' ],
-    prefix => '1.2.3.4',
-    raw_line => ':1.2.3.4 401 nick othernick :No such nick/channel',
-  });
-
-=head2 irc_join
-
-  $self->$callback({
-    params => ['#html'],
-    raw_line => ':somenick!~someuser@1.2.3.4 JOIN #html',
-    command => 'JOIN',
-    prefix => 'somenick!~someuser@1.2.3.4'
-  });
-
-=head2 irc_nick
-
-  $self->$callback({
-    params => ['newnick'],
-    raw_line => ':oldnick!~someuser@hostname.com NICK :newnick',
-    command => 'NICK',
-    prefix => 'somenick!~someuser@hostname.com'
-  });
-
-=head2 irc_mode
-
-  $self->$callback({
-    params => ['somenick', '+i'],
-    raw_line => ':somenick!~someuser@hostname.com MODE somenick :+i',
-    command => 'MODE',
-    prefix => 'somenick!~someuser@hostname.com'
-  });
-
-=head2 irc_notice
-
-  $self->$callback({
-    params => ['somenick', 'on 1 ca 1(4) ft 10(10)'],
-    raw_line => ':Zurich.CH.EU.Undernet.Org NOTICE somenick :on 1 ca 1(4) ft 10(10)',
-    command => 'NOTICE',
-    prefix => 'Zurich.CH.EU.Undernet.Org',
-  });
-
-=head2 irc_part
-
-  $self->$callback({
-    command => 'PART',
-    params => ['#channel'],
-    raw_line => ':somenick!~someuser@host PART #channel',
-    prefix => 'somenick!~someuser@host',
-  })
-
-=head2 irc_ping
-
-  $self->$callback({
-    params => [2687237629],
-    raw_line => 'PING :2687237629',
-    command => 'PING',
-  })
-
-=head2 irc_privmsg
-
-  $self->$callback({
-    params => [ '#channel', 'some message' ],
-    raw_line => ':nick!user@host PRIVMSG #nms :some message',
-    command => 'PRIVMSG',
-    prefix => 'nick!user@host',
-  });
-
-=head2 irc_rpl_created
-
-  $self->$callback({
-    params => ['somenick', 'This server was created Thu Jun 21 2012 at 01:26:15 UTC'],
-    raw_line => ':Tampa.FL.US.Undernet.org 003 somenick :This server was created Thu Jun 21 2012 at 01:26:15 UTC',
-    command => '003',
-    prefix => 'Tampa.FL.US.Undernet.org'
-  });
-
-=head2 irc_rpl_endofmotd
-
-=head2 irc_rpl_endofnames
-
-  $self->$callback({
-    params => ['somenick', '#channel', 'End of /NAMES list.'],
-    raw_line => ':Budapest.Hu.Eu.Undernet.org 366 somenick #channel :End of /NAMES list.',
-    command => '366',
-    prefix => 'Budapest.Hu.Eu.Undernet.org'
-  });
-
-=head2 irc_rpl_isupport
-
-  $self->$callback({
-    params => ['somenick', 'WHOX', 'WALLCHOPS', 'WALLVOICES', 'USERIP', 'CPRIVMSG', 'CNOTICE', 'SILENCE=25', 'MODES=6', 'MAXCHANNELS=20', 'MAXBANS=50', 'NICKLEN=12', 'are supported by this server'],
-    raw_line => ':Tampa.FL.US.Undernet.org 005 somenick WHOX WALLCHOPS WALLVOICES USERIP CPRIVMSG CNOTICE SILENCE=25 MODES=6 MAXCHANNELS=20 MAXBANS=50 NICKLEN=12 :are supported by this server',
-    command => '005',
-    prefix => 'Tampa.FL.US.Undernet.org'
-  })
-
-=head2 irc_rpl_luserchannels
-
-  $self->$callback({
-    params => ['somenick', '13700', 'channels formed'],
-    raw_line => ':Tampa.FL.US.Undernet.org 254 somenick 13700 :channels formed',
-    command => '254',
-    prefix => 'Tampa.FL.US.Undernet.org'
-  })
-
-=head2 irc_rpl_luserclient
-
-  $self->$callback({
-    params => ['somenick', 'There are 3400 users and 46913 invisible on 18 servers'],
-    raw_line => ':Tampa.FL.US.Undernet.org 251 somenick :There are 3400 users and 46913 invisible on 18 servers',
-    command => '251',
-    prefix => 'Tampa.FL.US.Undernet.org'
-  });
-
-=head2 irc_rpl_luserme
-
-  $self->$callback({
-    params => ['somenick', 'I have 12000 clients and 1 servers'],
-    raw_line => ':Tampa.FL.US.Undernet.org 255 somenick :I have 12000 clients and 1 servers',
-    command => '255',
-    prefix => 'Tampa.FL.US.Undernet.org'
-  });
-
-=head2 irc_rpl_luserop
-
-  $self->$callback({
-    params => ['somenick', '19', 'operator(s) online'],
-    raw_line => ':Tampa.FL.US.Undernet.org 252 somenick 19 :operator(s) online',
-    command => '252',
-    prefix => 'Tampa.FL.US.Undernet.org'
-  });
-
-=head2 irc_rpl_luserunknown
-
-  $self->$callback({
-    params => ['somenick', '305', 'unknown connection(s)'],
-    raw_line => ':Tampa.FL.US.Undernet.org 253 somenick 305 :unknown connection(s)',
-    command => '253',
-    prefix => 'Tampa.FL.US.Undernet.org'
-  })
-
-=head2 irc_rpl_motd
-
-=head2 irc_rpl_motdstart
-
-=head2 irc_rpl_myinfo
-
-  $self->$callback({
-    params => ['somenick', 'Tampa.FL.US.Undernet.org', 'u2.10.12.14', 'dioswkgx', 'biklmnopstvrDR', 'bklov'],
-    raw_line => ':Tampa.FL.US.Undernet.org 004 somenick Tampa.FL.US.Undernet.org u2.10.12.14 dioswkgx biklmnopstvrDR bklov',
-    command => '004',
-    prefix => 'Tampa.FL.US.Undernet.org',
-  })
-
-=head2 irc_rpl_namreply
-
-  $self->$callback({
-    params => ['somenick', '=', '#html', 'somenick Indig0 Wildblue @HTML @CSS @Luch1an @Steaua_ Indig0_ Pilum @fade'],
-    raw_line => ':Budapest.Hu.Eu.Undernet.org 353 somenick = #html :somenick Indig0 Wildblue @HTML @CSS @Luch1an @Steaua_ Indig0_ Pilum @fade',
-    command => '353',
-    prefix => 'Budapest.Hu.Eu.Undernet.org'
-  })
-
-=head2 irc_rpl_welcome
-
-  $self->$callback({
-    params => ['somenick', 'Welcome to the UnderNet IRC Network, somenick'],
-    raw_line => ':Zurich.CH.EU.Undernet.Org 001 somenick :Welcome to the UnderNet IRC Network, somenick',
-    command => '001',
-    prefix => 'Zurich.CH.EU.Undernet.Org'
-  })
-
-=head2 irc_rpl_yourhost
-
-  $self->$callback({
-    params => ['somenick', 'Your host is Tampa.FL.US.Undernet.org, running version u2.10.12.14'],
-    raw_line => ':Tampa.FL.US.Undernet.org 002 somenick :Your host is Tampa.FL.US.Undernet.org, running version u2.10.12.14',
-    command => '002',
-    prefix => 'Tampa.FL.US.Undernet.org'
-  });
+Events that start with "irc_" is emit when there is a normal IRC response.
+See L<Mojo::IRC::Events> for example events.
 
 =cut
 
