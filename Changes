@@ -1,5 +1,8 @@
 Revision history for Mojo-IRC
 
+0.09
+       * Fix emitting err_xxx events before irc_error
+
 0.08     Sun Jul 27 19:06:53 2014
        * Will also emit numeric events
        * Move events out of main module documentation

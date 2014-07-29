@@ -114,6 +114,9 @@ See L<Mojo::IRC::Events> for example events.
 This event is used to emit IRC errors. It is also possible for finer
 granularity to listen for events such as C<err_nicknameinuse>.
 
+NOTE: L</irc_error> events are emitted even if you listen to C<err_> events,
+but they are always emitted I<after> the C<err_> event.
+
 =head2 irc_event_name
 
 Events that start with "irc_" is emit when there is a normal IRC response.
@@ -600,14 +603,9 @@ sub _read {
       $method = IRC::Utils::numeric_to_name($method) or return;
     }
 
-    if ($method =~ /^ERR_/) {
-      $self->emit_safe(irc_error => $message);
-    }
-    elsif ($method !~ /^CTCP_/) {
-      $method = "irc_$method";
-    }
-
+    $method = "irc_$method" if $method !~ /^(CTCP|ERR)_/;
     $self->emit_safe(lc($method) => $message);
+    $self->emit_safe(irc_error => $message) if $method =~ /^ERR_/;
   }
 }
 
