@@ -2,7 +2,7 @@ NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
 VERSION
-    0.08
+    0.09
 
 SYNOPSIS
       my $irc = Mojo::IRC->new(
@@ -101,6 +101,9 @@ EVENTS
   irc_error
     This event is used to emit IRC errors. It is also possible for finer
     granularity to listen for events such as "err_nicknameinuse".
+
+    NOTE: "irc_error" events are emitted even if you listen to "err_"
+    events, but they are always emitted *after* the "err_" event.
 
   irc_event_name
     Events that start with "irc_" is emit when there is a normal IRC
