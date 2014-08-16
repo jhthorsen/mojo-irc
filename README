@@ -2,7 +2,7 @@ NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
 VERSION
-    0.09
+    0.10
 
 SYNOPSIS
       my $irc = Mojo::IRC->new(
@@ -156,11 +156,6 @@ ATTRIBUTES
     IRC username.
 
 METHODS
-  change_nick
-    This will be deprecated. Use the code below instead:
-
-      $self->write(NICK => $new_nick);
-
   connect
       $self = $self->connect(\&callback);
 
