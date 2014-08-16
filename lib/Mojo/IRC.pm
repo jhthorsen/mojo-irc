@@ -228,25 +228,6 @@ sub server {
 
 =head1 METHODS
 
-=head2 change_nick
-
-This will be deprecated. Use the code below instead:
-
-  $self->write(NICK => $new_nick);
-
-=cut
-
-sub change_nick {
-  my ($self, $nick) = @_;
-
-  warn "change_nick() is deprecated";
-
-  return $self unless length $nick;
-  return $self if $self->nick eq $nick;
-  $self->write(NICK => $nick);
-  $self;
-}
-
 =head2 connect
 
   $self = $self->connect(\&callback);
@@ -508,7 +489,7 @@ Used to update the L</nick> attribute when the nick has changed.
 
 sub irc_nick {
   my ($self, $message) = @_;
-  my $old_nick = ($message->{prefix} =~ /^(.*?)!/)[0] || '';
+  my $old_nick = ($message->{prefix} =~ /^[~&@%+]?(.*?)!/)[0] || '';
 
   if ($old_nick eq $self->nick) {
     $self->nick($message->{params}[0]);
