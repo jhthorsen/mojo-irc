@@ -228,25 +228,6 @@ sub server {
 
 =head1 METHODS
 
-=head2 change_nick
-
-This will be deprecated. Use the code below instead:
-
-  $self->write(NICK => $new_nick);
-
-=cut
-
-sub change_nick {
-  my ($self, $nick) = @_;
-
-  warn "change_nick() is deprecated";
-
-  return $self unless length $nick;
-  return $self if $self->nick eq $nick;
-  $self->write(NICK => $nick);
-  $self;
-}
-
 =head2 connect
 
   $self = $self->connect(\&callback);
