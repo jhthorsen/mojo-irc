@@ -489,7 +489,7 @@ Used to update the L</nick> attribute when the nick has changed.
 
 sub irc_nick {
   my ($self, $message) = @_;
-  my $old_nick = ($message->{prefix} =~ /^(.*?)!/)[0] || '';
+  my $old_nick = ($message->{prefix} =~ /^[~&@%+]?(.*?)!/)[0] || '';
 
   if ($old_nick eq $self->nick) {
     $self->nick($message->{params}[0]);
