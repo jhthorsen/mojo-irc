@@ -6,7 +6,7 @@ Mojo::IRC - IRC Client for the Mojo IOLoop
 
 =head1 VERSION
 
-0.10
+0.11
 
 =head1 SYNOPSIS
 
@@ -137,7 +137,7 @@ use constant DEFAULT_CERT => $ENV{MOJO_IRC_CERT_FILE} || catfile dirname(__FILE_
 use constant DEFAULT_KEY => $ENV{MOJO_IRC_KEY_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.key';
 use constant OFFLINE => $ENV{MOJO_IRC_OFFLINE} ? 1 : 0;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 my %CTCP_QUOTE = ( "\012" => 'n', "\015" => 'r', "\0" => '0', "\cP" => "\cP" );
 
@@ -553,7 +553,8 @@ sub err_nicknameinuse {
   my ($self, $message) = @_;
   my $nick = $message->{params}[1];
 
-  $self->write(NICK => $nick .'_');
+  $self->nick($nick .'_');
+  $self->write(NICK => $self->nick, sub {});
 }
 
 sub DESTROY {

@@ -53,7 +53,7 @@ my $irc = Mojo::IRC->new(nick => 'batman', stream => dummy_stream());
     prefix => 'astral.shadowcat.co.uk'
   });
 
-  is $irc->nick, 'batman', 'nick did not change on err_nicknameinuse';
+  is $irc->nick, 'newnick_', 'nick changed on err_nicknameinuse';
   is_deeply \@main::buf, ["NICK newnick_\r\n"], 'NICK newnick_';
 }
 

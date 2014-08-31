@@ -1,5 +1,8 @@
 Revision history for Mojo-IRC
 
+0.11     Sun Aug 31 14:32:11 2014
+       * Fix update of current nick() on err_nicknameinuse()
+
 0.10     Sat Aug 16 20:24:25 2014
        * Fix update of current nick()
        * Deprecated change_nick()
