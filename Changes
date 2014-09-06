@@ -1,6 +1,6 @@
 Revision history for Mojo-IRC
 
-0.12
+0.12     Sat Sep  6 19:25:13 2014
        * Skip tests on MSWin32 #9
 
 0.11     Sun Aug 31 14:32:11 2014
