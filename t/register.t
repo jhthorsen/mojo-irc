@@ -1,8 +1,6 @@
 use t::Helper;
 use Mojo::IRC;
 
-plan skip_all => 'reason' if 0;
-
 my $port = generate_port();
 my $irc = Mojo::IRC->new;
 my $written = '';

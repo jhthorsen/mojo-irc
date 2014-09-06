@@ -3,7 +3,7 @@ use strict;
 use Test::More;
 use Mojo::IRC;
 
-plan skip_all => 'reason' if 0;
+plan skip_all => 'MSWin32' if $^O eq 'MSWin32';
 
 my $irc = Mojo::IRC->new(nick => 'batman', stream => dummy_stream());
 

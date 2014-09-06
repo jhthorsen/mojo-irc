@@ -2,6 +2,8 @@ use t::Helper;
 use Mojo::IRC;
 use Errno ();
 
+plan skip_all => 'MSWin32' if $^O eq 'MSWin32';
+
 my $port = generate_port();
 my $irc = Mojo::IRC->new(server => "localhost:$port");
 my $status = 'YIKES';
