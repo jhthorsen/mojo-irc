@@ -581,13 +581,13 @@ sub _read {
     my $method = $message->{command} || '';
 
     if ($method =~ /^\d+$/) {
-      $self->emit_safe("irc_$method" => $message);
+      $self->emit("irc_$method" => $message);
       $method = IRC::Utils::numeric_to_name($method) or return;
     }
 
     $method = "irc_$method" if $method !~ /^(CTCP|ERR)_/;
-    $self->emit_safe(lc($method) => $message);
-    $self->emit_safe(irc_error => $message) if $method =~ /^ERR_/;
+    $self->emit(lc($method) => $message);
+    $self->emit(irc_error => $message) if $method =~ /^ERR_/;
   }
 }
 

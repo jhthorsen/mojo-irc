@@ -1,5 +1,8 @@
 Revision history for Mojo-IRC
 
+0.13
+       * emit_safe() is deprecated in Mojolicious
+
 0.12     Sat Sep  6 19:25:13 2014
        * Skip tests on MSWin32 #9
 
