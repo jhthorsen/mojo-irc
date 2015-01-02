@@ -1,5 +1,8 @@
 Revision history for Mojo-IRC
 
+0.14     Fri Jan  2 13:31:11 2015
+       * Fix failing test on BSD
+
 0.13     Sun Sep 14 20:16:25 2014
        * emit_safe() is deprecated in Mojolicious
 
