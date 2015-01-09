@@ -9,7 +9,7 @@ my $err;
 $irc->name("the end");
 $irc->nick("fooman");
 $irc->pass("s4cret");
-$irc->server("localhost:$port");
+$irc->server("127.0.0.1:$port");
 $irc->user("foo");
 
 Mojo::IOLoop->server(

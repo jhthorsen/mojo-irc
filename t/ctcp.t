@@ -7,7 +7,7 @@ use t::Helper;
 }
 
 my $port = generate_port();
-my $irc = Mojo::IRC->new(nick => "ctcpman", user => "u1", server => "localhost:$port");
+my $irc = Mojo::IRC->new(nick => "ctcpman", user => "u1", server => "127.0.0.1:$port");
 my $read = '';
 
 Mojo::IOLoop->server(

@@ -34,7 +34,7 @@ Mojo::IOLoop->server(
   $irc->nick('test123');
   is $irc->nick, 'test123', 'nick setter works';
   $irc->user('my name');
-  my $server = $ENV{IRC_HOST} || "localhost:$port";
+  my $server = $ENV{IRC_HOST} || "127.0.0.1:$port";
   $irc->server($server);
   is $irc->server, $server, 'server setter works';
 }
