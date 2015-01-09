@@ -25,7 +25,7 @@ Mojo::IOLoop->server(
   },
 );
 
-$irc->connect(sub { $err = pop; });
+$irc->connect(sub { $err = pop; Mojo::IOLoop->stop if $err; });
 Mojo::IOLoop->start;
 
 is $err, '', 'no error';

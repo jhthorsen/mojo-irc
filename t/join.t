@@ -62,7 +62,7 @@ Mojo::IOLoop->server(
   $irc->connect(
     sub {
       my ($irc, $err) = @_;
-      diag $err if $err;
+      diag($err), Mojo::IOLoop->stop if $err;
       $irc->write(JOIN => '#mojo');
     }
   );

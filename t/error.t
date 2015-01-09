@@ -39,6 +39,7 @@ Mojo::IOLoop->server(
   $irc->connect(sub {
     my($irc, $error) = @_;
     is $error, '', 'connected';
+    Mojo::IOLoop->stop if $error;
   });
   Mojo::IOLoop->start;
 

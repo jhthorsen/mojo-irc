@@ -35,7 +35,7 @@ $irc->parser(Parse::IRC->new(ctcp => 1));
 {
   my $action;
   $irc->on(ctcp_action => sub { $action = $_[1]; });
-  $irc->connect(sub { diag $_[1] || 'Connected'; });
+  $irc->connect(sub { diag $_[1] || 'Connected'; Mojo::IOLoop->stop if $_[1] });
   Mojo::IOLoop->start;
 
   delete $action->{raw_line};
