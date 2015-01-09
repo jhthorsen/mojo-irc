@@ -6,12 +6,14 @@ use Mojo::IRC;
 plan skip_all => 'MSWin32' if $^O eq 'MSWin32';
 
 {
+  our (@buf, $close);
+
   my $irc = Mojo::IRC->new(nick => 'test123', stream => dummy_stream());
   my @args;
 
   $irc->disconnect(sub { @args = @_ });
-  is_deeply \@main::buf, ["QUIT\r\n"], 'QUIT is sent';
-  is $main::close, 1, 'stream was closed';
+  is_deeply \@buf, ["QUIT\r\n"], 'QUIT is sent';
+  is $close, 1, 'stream was closed';
   is $args[0], $irc, 'callback was called';
 }
 
