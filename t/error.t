@@ -5,7 +5,7 @@ use Errno ();
 plan skip_all => 'MSWin32' if $^O eq 'MSWin32';
 
 my $port = generate_port();
-my $irc = Mojo::IRC->new(server => "localhost:$port");
+my $irc = Mojo::IRC->new(server => "127.0.0.1:$port");
 my $status = 'YIKES';
 
 plan skip_all => 'Could not find any port' unless $port;
@@ -24,7 +24,7 @@ Mojo::IOLoop->server(
 
 {
   my $bad_port = generate_port();
-  $irc->server("localhost:$bad_port");
+  $irc->server("127.0.0.1:$bad_port");
   $irc->connect(sub {
     my($irc, $error) = @_;
     my $errnum = int $!;
@@ -35,7 +35,7 @@ Mojo::IOLoop->server(
 }
 
 {
-  $irc->server("localhost:$port");
+  $irc->server("127.0.0.1:$port");
   $irc->connect(sub {
     my($irc, $error) = @_;
     is $error, '', 'connected';
@@ -46,7 +46,7 @@ Mojo::IOLoop->server(
 }
 
 {
-  $irc->server("localhost:$port");
+  $irc->server("127.0.0.1:$port");
   $irc->connect(sub {
     my($irc, $error) = @_;
     $status = 'connected';
