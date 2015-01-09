@@ -129,17 +129,17 @@ use Mojo::IOLoop;
 use File::Basename 'dirname';
 use File::Spec::Functions 'catfile';
 use IRC::Utils;
-use Parse::IRC ();
+use Parse::IRC   ();
 use Scalar::Util ();
 use Unicode::UTF8;
 use constant DEBUG => $ENV{MOJO_IRC_DEBUG} ? 1 : 0;
 use constant DEFAULT_CERT => $ENV{MOJO_IRC_CERT_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.crt';
-use constant DEFAULT_KEY => $ENV{MOJO_IRC_KEY_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.key';
+use constant DEFAULT_KEY  => $ENV{MOJO_IRC_KEY_FILE}  || catfile dirname(__FILE__), 'mojo-irc-client.key';
 use constant OFFLINE => $ENV{MOJO_IRC_OFFLINE} ? 1 : 0;
 
 our $VERSION = '0.14';
 
-my %CTCP_QUOTE = ( "\012" => 'n', "\015" => 'r', "\0" => '0', "\cP" => "\cP" );
+my %CTCP_QUOTE = ("\012" => 'n', "\015" => 'r', "\0" => '0', "\cP" => "\cP");
 
 my @DEFAULT_EVENTS = qw(
   irc_ping irc_nick irc_notice irc_rpl_welcome err_nicknameinuse
@@ -205,13 +205,13 @@ IRC username.
 =cut
 
 has ioloop => sub { Mojo::IOLoop->singleton };
-has name => 'Mojo IRC';
-has nick => '';
+has name   => 'Mojo IRC';
+has nick   => '';
 has parser => sub { Parse::IRC->new; };
-has pass => '';
+has pass   => '';
 has real_host => '';
-has tls => undef;
-has user => '';
+has tls       => undef;
+has user      => '';
 
 sub server {
   my ($self, $server) = @_;
@@ -222,7 +222,11 @@ sub server {
   return $self if $old and $old eq $server;
   $self->{server} = $server;
   return $self unless $self->{stream_id};
-  $self->disconnect(sub { $self->connect(sub {}) });
+  $self->disconnect(
+    sub {
+      $self->connect(sub { });
+    }
+  );
   $self;
 }
 
@@ -248,11 +252,11 @@ sub connect {
     return $self;
   }
 
-  if(my $tls = $self->tls) {
-    push @tls, tls => 1;
-    push @tls, tls_ca => $tls->{ca} if $tls->{ca}; # not sure why this should be supported, but adding it anyway
+  if (my $tls = $self->tls) {
+    push @tls, tls      => 1;
+    push @tls, tls_ca   => $tls->{ca} if $tls->{ca};       # not sure why this should be supported, but adding it anyway
     push @tls, tls_cert => $tls->{cert} || DEFAULT_CERT;
-    push @tls, tls_key => $tls->{key} || DEFAULT_KEY;
+    push @tls, tls_key  => $tls->{key} || DEFAULT_KEY;
   }
 
   $port ||= 6667;
@@ -261,9 +265,9 @@ sub connect {
   $self->register_default_event_handlers;
 
   if (OFFLINE) {
-    $self->write(PASS => $self->pass, sub {}) if length $self->pass;
-    $self->write(NICK => $self->nick, sub {});
-    $self->write(USER => $self->user, 8, '*', ':' . $self->name, sub {});
+    $self->write(PASS => $self->pass, sub { }) if length $self->pass;
+    $self->write(NICK => $self->nick, sub { });
+    $self->write(USER => $self->user, 8, '*', ':' . $self->name, sub { });
     $self->$cb('');
     return $self;
   }
@@ -276,7 +280,7 @@ sub connect {
     sub {
       my ($loop, $err, $stream) = @_;
 
-      if($err) {
+      if ($err) {
         delete $self->{stream_id};
         return $self->$cb($err);
       }
@@ -299,9 +303,7 @@ sub connect {
           $self->emit(error => $_[1]);
         }
       );
-      $stream->on(
-        read => sub { $self->_read($_[1]) }
-      );
+      $stream->on(read => sub { $self->_read($_[1]) });
 
       $self->{stream} = $stream;
       $self->ioloop->delay(
@@ -354,11 +356,11 @@ Will disconnect form the server and run the callback once it is done.
 sub disconnect {
   my ($self, $cb) = @_;
 
-  if(my $tid = delete $self->{ping_tid}) {
+  if (my $tid = delete $self->{ping_tid}) {
     $self->ioloop->remove($tid);
   }
 
-  if($self->{stream}) {
+  if ($self->{stream}) {
     Scalar::Util::weaken($self);
     $self->{stream}->write(
       "QUIT\r\n",
@@ -407,9 +409,9 @@ an error message: Empty string on success and a description on error.
 
 sub write {
   no warnings 'utf8';
-  my $cb = ref $_[-1] eq 'CODE' ? pop : sub {};
+  my $cb   = ref $_[-1] eq 'CODE' ? pop : sub { };
   my $self = shift;
-  my $buf = Unicode::UTF8::encode_utf8(join(' ', @_), sub { $_[0] });
+  my $buf  = Unicode::UTF8::encode_utf8(join(' ', @_), sub { $_[0] });
 
   Scalar::Util::weaken($self);
   if (OFFLINE) {
@@ -536,7 +538,7 @@ sub irc_rpl_welcome {
   Scalar::Util::weaken($self);
   $self->real_host($message->{prefix});
   $self->{ping_tid} ||= $self->ioloop->recurring(
-    $self->{ping_pong_interval} || 60, # $self->{ping_pong_interval} is EXPERIMENTAL
+    $self->{ping_pong_interval} || 60,    # $self->{ping_pong_interval} is EXPERIMENTAL
     sub {
       $self->write(PING => $self->real_host);
     }
@@ -553,8 +555,8 @@ sub err_nicknameinuse {
   my ($self, $message) = @_;
   my $nick = $message->{params}[1];
 
-  $self->nick($nick .'_');
-  $self->write(NICK => $self->nick, sub {});
+  $self->nick($nick . '_');
+  $self->write(NICK => $self->nick, sub { });
 }
 
 sub DESTROY {

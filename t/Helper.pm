@@ -3,16 +3,16 @@ use Mojo::Util 'monkey_patch';
 use Test::More ();
 
 sub import {
-  my $class = shift;
+  my $class  = shift;
   my $caller = caller;
 
-  eval <<"  CODE" or die $@;
+  eval <<"HERE" or die $@;
   package $caller;
   use Test::More;
   use strict;
   use warnings;
   1;
-  CODE
+HERE
 
   eval "use Mojo::IOLoop; use Mojo::IOLoop::Server";
 

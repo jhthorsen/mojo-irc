@@ -1,8 +1,8 @@
 use t::Helper;
 use Mojo::IRC;
 
-my $port = generate_port();
-my $irc = Mojo::IRC->new;
+my $port    = generate_port();
+my $irc     = Mojo::IRC->new;
 my $written = '';
 my $err;
 
@@ -13,15 +13,17 @@ $irc->server("127.0.0.1:$port");
 $irc->user("foo");
 
 Mojo::IOLoop->server(
-  { port => $port },
+  {port => $port},
   sub {
-    my($self, $stream) = @_;
-    my($join, $welcome);
-    $stream->on(read => sub {
-      diag $_[1];
-      $written .= $_[1];
-      Mojo::IOLoop->stop if $written =~ /:the end/;
-    });
+    my ($self, $stream) = @_;
+    my ($join, $welcome);
+    $stream->on(
+      read => sub {
+        diag $_[1];
+        $written .= $_[1];
+        Mojo::IOLoop->stop if $written =~ /:the end/;
+      }
+    );
   },
 );
 

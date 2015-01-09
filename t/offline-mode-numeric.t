@@ -8,16 +8,16 @@ my @msg;
 
 $irc->parser(Parse::IRC->new(ctcp => 1));
 $irc->on(irc_479 => sub { push @msg, $_[1] });
-$irc->connect(sub {});
+$irc->connect(sub { });
 $irc->from_irc_server(":hostname 479 nickname 1 :Illegal channel name\r\n");
 
 is_deeply(
   \@msg,
   [
     {
-      command => 479,
-      params => [ 'nickname', '1', 'Illegal channel name' ],
-      prefix => 'hostname',
+      command  => 479,
+      params   => ['nickname', '1', 'Illegal channel name'],
+      prefix   => 'hostname',
       raw_line => ':hostname 479 nickname 1 :Illegal channel name',
     },
   ],

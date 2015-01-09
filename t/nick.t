@@ -5,23 +5,18 @@ use Test::More;
 
 my $irc = Mojo::IRC->new(nick => 'fooman', stream => dummy_stream());
 
-{
-  $irc->irc_nick({
-    prefix => 'ads!user@host',
-    params => ['newnick'],
-  });
-  is $irc->nick, 'fooman', 'nick() did not change to newnick';
+$irc->irc_nick({prefix => 'ads!user@host', params => ['newnick'],});
+is $irc->nick, 'fooman', 'nick() did not change to newnick';
 
-  $irc->irc_nick({ prefix => 'fooman!user@host', params => ['foowoman'] });
-  is $irc->nick, 'foowoman', 'nick() changed to foowoman';
+$irc->irc_nick({prefix => 'fooman!user@host', params => ['foowoman']});
+is $irc->nick, 'foowoman', 'nick() changed to foowoman';
 
-  my %nicks = qw( ~ tilde & and @ at % percent + plus );
-  my $old = $irc->nick;
-  while (my($prefix, $new) = each %nicks) {
-    $irc->irc_nick({ prefix => "$prefix$old!user\@host", params => [$new] });
-    is $irc->nick, $new, "nick() changed to $new";
-    $old = $irc->nick;
-  }
+my %nicks = qw( ~ tilde & and @ at % percent + plus );
+my $old   = $irc->nick;
+while (my ($prefix, $new) = each %nicks) {
+  $irc->irc_nick({prefix => "$prefix$old!user\@host", params => [$new]});
+  is $irc->nick, $new, "nick() changed to $new";
+  $old = $irc->nick;
 }
 
 sub dummy_stream {
