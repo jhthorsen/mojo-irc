@@ -35,7 +35,7 @@ $irc->parser(Parse::IRC->new(ctcp => 1));
 my $action;
 $irc->on(ctcp_action => sub { $action = $_[1]; });
 $irc->connect(sub { diag $_[1] || 'Connected'; });
-Mojo::IOLoop->start;
+start_ioloop();
 
 delete $action->{raw_line};
 is_deeply($action, {command => 'CTCP_ACTION', params => [qw( #channel msg1 )], prefix => 'abc-123',}, 'CTCP ACTION',);
@@ -49,3 +49,9 @@ NOTICE ctcpman :\001VERSION Mojo-IRC $Mojo::IRC::VERSION\001\r
 HERE
 
 done_testing;
+
+sub start_ioloop {
+  my $tid = Mojo::IOLoop->timer(1 => sub { Mojo::IOLoop->stop });
+  Mojo::IOLoop->start;
+  Mojo::IOLoop->remove($tid);
+}

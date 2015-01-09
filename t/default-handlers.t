@@ -9,7 +9,7 @@ my $irc = Mojo::IRC->new(nick => 'batman', stream => dummy_stream());
 
 $irc->register_default_event_handlers;
 
-for my $event (qw/ irc_ping irc_nick irc_notice irc_rpl_welcome err_nicknameinuse /) {
+for my $event (qw( irc_ping irc_nick irc_notice irc_rpl_welcome err_nicknameinuse )) {
   ok $irc->has_subscribers($event), "registered $event";
 }
 

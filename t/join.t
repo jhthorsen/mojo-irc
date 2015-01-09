@@ -2,7 +2,6 @@ use t::Helper;
 use Mojo::IRC;
 
 plan skip_all => 'No test data' unless -r 't/data/irc.perl.org';
-plan tests => 9;
 
 my $port = generate_port();
 my $irc  = Mojo::IRC->new;
@@ -37,38 +36,38 @@ my $server = $ENV{IRC_HOST} || "127.0.0.1:$port";
 $irc->server($server);
 is $irc->server, $server, 'server setter works';
 
+my $message = {};
+my $err     = '';
 my %got;
-$irc->on(
-  irc_join => sub {
-    my ($self, $message) = @_;
-
-    is_deeply $message->{params}, ['#mojo'], 'got join #mojo event';
-    is $message->{prefix}, 'test123!~my@1.2.3.4.foo.com', '...with prefix';
-    is $got{rpl_motdstart}, 1,  '1 motdstart event';
-    is $got{rpl_motd},      18, '18 motd events';
-    is $got{rpl_endofmotd}, 1,  '1 endofmotd event';
-    is $read, "NICK test123\r\nUSER my name 8 * :Mojo IRC\r\nJOIN #mojo\r\n", 'nick, user and join got sent';
-    Mojo::IOLoop->stop;
-  }
-);
+$irc->on(irc_join => sub { (my $self, $message) = @_; Mojo::IOLoop->stop; });
 
 $irc->on(irc_rpl_motdstart => sub { $got{rpl_motdstart}++ });
 $irc->on(irc_rpl_motd      => sub { $got{rpl_motd}++ });
 $irc->on(irc_rpl_endofmotd => sub { $got{rpl_endofmotd}++ });
+$irc->connect(sub { (my $irc, $err) = @_; $irc->write(JOIN => '#mojo'); });
 
-$irc->connect(
-  sub {
-    my ($irc, $err) = @_;
-    diag $err if $err;
-    $irc->write(JOIN => '#mojo');
-  }
-);
+start_ioloop();
+is_deeply $message->{params}, ['#mojo'], 'got join #mojo event';
+is $message->{prefix}, 'test123!~my@1.2.3.4.foo.com', '...with prefix';
+is $got{rpl_motdstart}, 1,  '1 motdstart event';
+is $got{rpl_motd},      18, '18 motd events';
+is $got{rpl_endofmotd}, 1,  '1 endofmotd event';
+is $read, "NICK test123\r\nUSER my name 8 * :Mojo IRC\r\nJOIN #mojo\r\n", 'nick, user and join got sent';
+is + ($err || ''), '', 'no error';
 
-Mojo::IOLoop->start;
+done_testing;
 
 sub irc_data {
   my $file = shift;
   diag "read $file";
   open my $FH, '<', "t/data/$file" or die $!;
   join '', map { s/\r?\n$/\r\n/; $_ } <$FH>;
+}
+
+sub start_ioloop {
+  $err    = 'ioloop-failed';
+  $status = 'ioloop-failed';
+  my $tid = Mojo::IOLoop->timer(1 => sub { Mojo::IOLoop->stop });
+  Mojo::IOLoop->start;
+  Mojo::IOLoop->remove($tid);
 }

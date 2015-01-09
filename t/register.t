@@ -27,10 +27,12 @@ Mojo::IOLoop->server(
   },
 );
 
+$err = 'ioloop-failed';
 $irc->connect(sub { $err = pop; });
+Mojo::IOLoop->timer(sub { Mojo::IOLoop->stop; });
 Mojo::IOLoop->start;
 
-is $err, '', 'no error';
+is + ($err || ''), '', 'no error';
 is $written, "PASS s4cret\r\nNICK fooman\r\nUSER foo 8 * :the end\r\n", 'wrote PASS, NICK, USER';
 
 done_testing;
