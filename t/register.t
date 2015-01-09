@@ -29,7 +29,7 @@ Mojo::IOLoop->server(
 
 $err = 'ioloop-failed';
 $irc->connect(sub { $err = pop; });
-Mojo::IOLoop->timer(sub { Mojo::IOLoop->stop; });
+Mojo::IOLoop->timer(1 => sub { Mojo::IOLoop->stop; });
 Mojo::IOLoop->start;
 
 is + ($err || ''), '', 'no error';

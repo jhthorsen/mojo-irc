@@ -18,7 +18,7 @@ $irc->connect(sub { (my $irc, $err) = @_; Mojo::IOLoop->stop; });
 ok $irc->{stream_id}, 'stream_id is set';
 
 $err = 'ioloop-failed';
-Mojo::IOLoop->timer(sub { Mojo::IOLoop->stop; });
+Mojo::IOLoop->timer(1 => sub { Mojo::IOLoop->stop; });
 Mojo::IOLoop->start;
 is $err, '', 'no error';
 
