@@ -128,7 +128,7 @@ use Mojo::Base 'Mojo::EventEmitter';
 use Mojo::IOLoop;
 use File::Basename 'dirname';
 use File::Spec::Functions 'catfile';
-use IRC::Utils;
+use IRC::Utils   ();
 use Parse::IRC   ();
 use Scalar::Util ();
 use Unicode::UTF8;
@@ -441,14 +441,11 @@ Will respond to the sender with the difference in time.
 
 sub ctcp_ping {
   my ($self, $message) = @_;
-  my $t0 = $message->{params}[1] || '';
+  my $ts   = $message->{params}[1];
+  my $nick = IRC::Utils::parse_user($message->{prefix});
 
-  return $self unless $t0 =~ /^\d+$/;
-  return $self->write(
-    'NOTICE',
-    $message->{params}[0],
-    $self->ctcp(sprintf "Ping reply from %s: %s second(s)", $self->nick, time - $t0),
-  );
+  return $self unless $ts;
+  return $self->write('NOTICE', $nick, $self->ctcp(PING => $ts));
 }
 
 =head2 ctcp_time
@@ -463,8 +460,9 @@ NOTE! The localtime format may change.
 
 sub ctcp_time {
   my ($self, $message) = @_;
+  my $nick = IRC::Utils::parse_user($message->{prefix});
 
-  $self->write(NOTICE => $message->{params}[0], $self->ctcp(TIME => scalar localtime));
+  $self->write(NOTICE => $nick, $self->ctcp(TIME => scalar localtime));
 }
 
 =head2 ctcp_version
@@ -479,8 +477,9 @@ NOTE! Additional information may be added later on.
 
 sub ctcp_version {
   my ($self, $message) = @_;
+  my $nick = IRC::Utils::parse_user($message->{prefix});
 
-  $self->write(NOTICE => $message->{params}[0], $self->ctcp(VERSION => 'Mojo-IRC', $VERSION));
+  $self->write(NOTICE => $nick, $self->ctcp(VERSION => 'Mojo-IRC', $VERSION));
 }
 
 =head2 irc_nick

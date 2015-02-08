@@ -5,6 +5,8 @@ Revision history for Mojo-IRC
          Contributor: Dan Book
        * Fix "close" event can reconnect
          Contributor: Dan Book
+       * Fix responding to CTCP messages
+       * Fix responding to CTCP PING message
 
 0.15     Fri Jan  9 16:19:34 2015
        * More robust unit tests
