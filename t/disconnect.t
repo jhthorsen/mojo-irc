@@ -15,6 +15,11 @@ is_deeply \@buf, ["QUIT\r\n"], 'QUIT is sent';
 is $close, 1, 'stream was closed';
 is $args[0], $irc, 'callback was called';
 
+is $irc->disconnect, $irc, 'disconnect without callback';
+
+delete $irc->{stream};
+is $irc->disconnect, $irc, 'disconnect without callback';
+
 done_testing;
 
 sub dummy_stream {
