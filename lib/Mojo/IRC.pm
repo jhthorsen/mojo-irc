@@ -441,12 +441,13 @@ Will respond to the sender with the difference in time.
 
 sub ctcp_ping {
   my ($self, $message) = @_;
+  my $sender = ($message->{prefix} =~ /^(.*?)!/)[0] || '';
   my $t0 = $message->{params}[1] || '';
 
   return $self unless $t0 =~ /^\d+$/;
   return $self->write(
     'NOTICE',
-    $message->{params}[0],
+    $sender,
     $self->ctcp(sprintf "Ping reply from %s: %s second(s)", $self->nick, time - $t0),
   );
 }
@@ -463,8 +464,9 @@ NOTE! The localtime format may change.
 
 sub ctcp_time {
   my ($self, $message) = @_;
+  my $sender = ($message->{prefix} =~ /^(.*?)!/)[0] || '';
 
-  $self->write(NOTICE => $message->{params}[0], $self->ctcp(TIME => scalar localtime));
+  $self->write(NOTICE => $sender, $self->ctcp(TIME => scalar localtime));
 }
 
 =head2 ctcp_version
@@ -479,8 +481,9 @@ NOTE! Additional information may be added later on.
 
 sub ctcp_version {
   my ($self, $message) = @_;
+  my $sender = ($message->{prefix} =~ /^(.*?)!/)[0] || '';
 
-  $self->write(NOTICE => $message->{params}[0], $self->ctcp(VERSION => 'Mojo-IRC', $VERSION));
+  $self->write(NOTICE => $sender, $self->ctcp(VERSION => 'Mojo-IRC', $VERSION));
 }
 
 =head2 irc_nick
