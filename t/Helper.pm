@@ -1,6 +1,7 @@
 package t::Helper;
 use Mojo::Util 'monkey_patch';
 use Test::More ();
+use Mojo::IRC;
 
 sub import {
   my $class  = shift;

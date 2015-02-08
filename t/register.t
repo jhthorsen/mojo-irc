@@ -1,5 +1,4 @@
 use t::Helper;
-use Mojo::IRC;
 
 my $port    = generate_port();
 my $irc     = Mojo::IRC->new;

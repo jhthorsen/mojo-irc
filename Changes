@@ -3,6 +3,8 @@ Revision history for Mojo-IRC
 0.16
        * Add disconnect() can be called without a callback
          Contributor: Dan Book
+       * Fix "close" event can reconnect
+         Contributor: Dan Book
 
 0.15     Fri Jan  9 16:19:34 2015
        * More robust unit tests

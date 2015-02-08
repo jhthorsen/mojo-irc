@@ -1,5 +1,4 @@
 use t::Helper;
-use Mojo::IRC;
 use Errno ();
 
 plan skip_all => 'MSWin32' if $^O eq 'MSWin32';

@@ -1,5 +1,4 @@
 use t::Helper;
-use Mojo::IRC;
 
 plan skip_all => 'No test data' unless -r 't/data/irc.perl.org';
 
