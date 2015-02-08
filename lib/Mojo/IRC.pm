@@ -366,12 +366,12 @@ sub disconnect {
       "QUIT\r\n",
       sub {
         $self->{stream}->close;
-        $self->$cb;
+        $self->$cb if $cb;
       }
     );
   }
   else {
-    $self->$cb;
+    $self->$cb if $cb;
   }
 
   $self;
