@@ -290,9 +290,9 @@ sub connect {
         close => sub {
           $self or return;
           warn "[$self->{debug_key}] : close\n" if DEBUG;
-          $self->emit('close');
           delete $self->{stream};
           delete $self->{stream_id};
+          $self->emit('close');
         }
       );
       $stream->on(
