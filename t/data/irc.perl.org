@@ -1,6 +1,5 @@
-:spectral.shadowcat.co.uk NOTICE AUTH :*** Looking up your hostname...
-:spectral.shadowcat.co.uk NOTICE AUTH :*** Checking Ident
-
-:spectral.shadowcat.co.uk NOTICE AUTH :*** Found your hostname
-
-:spectral.shadowcat.co.uk NOTICE AUTH :*** No Ident response
+:ford.tamarou.com NOTICE AUTH :*** Looking up your hostname...
+:ford.tamarou.com NOTICE AUTH :*** Checking Ident
+:ford.tamarou.com NOTICE AUTH :*** No Ident response
+:ford.tamarou.com NOTICE AUTH :*** Found your hostname
+:ford.tamarou.com NOTICE test123 :*** Connected securely via UNKNOWN AES128-SHA256-128
