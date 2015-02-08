@@ -109,6 +109,11 @@ CTCP messages, and there is an CTCP response.
 
 See L<Mojo::IRC::Events> for example events.
 
+=head2 irc_default
+
+This event is emitted for any IRC response that does not have an event handler
+registered.
+
 =head2 irc_error
 
 This event is used to emit IRC errors. It is also possible for finer
@@ -582,14 +587,23 @@ sub _read {
     my $message = $self->parser->parse($1);
     my $method = $message->{command} || '';
 
+    my $handled;
     if ($method =~ /^\d+$/) {
+      $handled = 1 if $self->has_subscribers("irc_$method");
       $self->emit("irc_$method" => $message);
       $method = IRC::Utils::numeric_to_name($method) or return;
     }
 
     $method = "irc_$method" if $method !~ /^(CTCP|ERR)_/;
+    $handled = 1 if $self->has_subscribers(lc($method));
     $self->emit(lc($method) => $message);
-    $self->emit(irc_error => $message) if $method =~ /^ERR_/;
+
+    if ($method =~ /^ERR_/) {
+        $handled = 1 if $self->has_subscribers('irc_error');
+        $self->emit(irc_error => $message);
+    }
+
+    $self->emit(irc_default => $message) unless $handled;
   }
 }
 
