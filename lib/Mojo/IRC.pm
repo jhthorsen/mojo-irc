@@ -492,7 +492,7 @@ sub irc_nick {
   my ($self, $message) = @_;
   my $old_nick = ($message->{prefix} =~ /^[~&@%+]?(.*?)!/)[0] || '';
 
-  if ($old_nick eq $self->nick) {
+  if (lc $old_nick eq lc $self->nick) {
     $self->nick($message->{params}[0]);
   }
 }
@@ -527,12 +527,13 @@ sub irc_ping {
 =head2 irc_rpl_welcome
 
 Used to get the hostname of the server. Will also set up automatic PING
-requests to prevent timeout.
+requests to prevent timeout and update the L</nick> attribute.
 
 =cut
 
 sub irc_rpl_welcome {
   my ($self, $message) = @_;
+  $self->nick($message->{params}[0]);
 
   Scalar::Util::weaken($self);
   $self->real_host($message->{prefix});
