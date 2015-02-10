@@ -49,7 +49,7 @@ start_ioloop();
 is_deeply $message->{params}, ['#mojo'], 'got join #mojo event';
 is $message->{prefix}, 'test123!~my@1.2.3.4.foo.com', '...with prefix';
 is $got{rpl_motdstart}, 1,  '1 motdstart event';
-is $got{rpl_motd},      18, '18 motd events';
+is $got{rpl_motd},      23, '23 motd events';
 is $got{rpl_endofmotd}, 1,  '1 endofmotd event';
 is $read, "NICK test123\r\nUSER my name 8 * :Mojo IRC\r\nJOIN #mojo\r\n", 'nick, user and join got sent';
 is + ($err || ''), '', 'no error';
