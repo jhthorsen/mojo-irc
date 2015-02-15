@@ -10,20 +10,23 @@ Mojo::IOLoop->server(
   {port => $port},
   sub {
     my ($self, $stream) = @_;
-    my ($join, $welcome);
+    my $buf = irc_data('irc.perl.org');
+    my ($write, %seen);
+
+    $write = sub {
+      return unless length $buf;
+      return shift->write(substr($buf, 0, int(10 + rand 20), ''), sub { shift->$write });
+    };
+
     $stream->on(
       read => sub {
         my ($stream, $data) = @_;
         $read .= $data;
-        if ($read =~ /NICK/ and !$welcome) {
-          $stream->write($welcome = irc_data('welcome'));
-        }
-        if ($read =~ /JOIN/ and !$join) {
-          $stream->write($join = irc_data('join.mojo'));
-        }
+        $buf  .= irc_data('welcome') if $read =~ /NICK/ and !$seen{welcome}++;
+        $buf  .= irc_data('join.mojo') if $read =~ /JOIN/ and !$send{join}++;
       }
     );
-    $stream->write(irc_data('irc.perl.org'));
+    $stream->$write;
   },
 );
 
