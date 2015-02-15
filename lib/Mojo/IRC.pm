@@ -582,9 +582,9 @@ sub _read {
     my $message = $self->parser->parse($1);
     my $method = $message->{command} || '';
 
-    if ($method =~ /^\d+$/) {
+    if ($method =~ /^\d+$/ and my $name_method = IRC::Utils::numeric_to_name($method)) {
       $self->emit("irc_$method" => $message);
-      $method = IRC::Utils::numeric_to_name($method) or return;
+      $method = $name_method;
     }
 
     $method = "irc_$method" if $method !~ /^(CTCP|ERR)_/;
