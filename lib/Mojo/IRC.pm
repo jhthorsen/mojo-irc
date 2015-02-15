@@ -577,19 +577,20 @@ sub _read {
   no warnings 'utf8';
   $self->{buffer} .= Unicode::UTF8::decode_utf8($_[0], sub { $_[0] });
 
+CHUNK:
   while ($self->{buffer} =~ s/^([^\r\n]+)\r\n//m) {
     warn "[$self->{debug_key}] >>> $1\n" if DEBUG;
     my $message = $self->parser->parse($1);
-    my $method = $message->{command} || '';
+    my $command = $message->{command} or next CHUNK;
 
-    if ($method =~ /^\d+$/) {
-      $self->emit("irc_$method" => $message);
-      $method = IRC::Utils::numeric_to_name($method) or return;
+    if ($command =~ /^\d+$/) {
+      $self->emit("irc_$command" => $message);
+      $command = IRC::Utils::numeric_to_name($command) or next CHUNK;
     }
 
-    $method = "irc_$method" if $method !~ /^(CTCP|ERR)_/;
-    $self->emit(lc($method) => $message);
-    $self->emit(irc_error => $message) if $method =~ /^ERR_/;
+    $command = "irc_$command" if $command !~ /^(CTCP|ERR)_/;
+    $self->emit(lc($command) => $message);
+    $self->emit(irc_error => $message) if $command =~ /^ERR_/;
   }
 }
 
