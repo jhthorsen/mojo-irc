@@ -2,7 +2,7 @@ NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
 VERSION
-    0.16
+    0.17
 
 SYNOPSIS
       my $irc = Mojo::IRC->new(
@@ -226,7 +226,7 @@ DEFAULT EVENT HANDLERS
 
   irc_rpl_welcome
     Used to get the hostname of the server. Will also set up automatic PING
-    requests to prevent timeout.
+    requests to prevent timeout and update the "nick" attribute.
 
   err_nicknameinuse
     This handler will add "_" to the failed nick before trying to register

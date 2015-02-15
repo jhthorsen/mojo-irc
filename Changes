@@ -1,5 +1,9 @@
 Revision history for Mojo-IRC
 
+0.17     Sun Feb 15 21:44:25 2015
+      * Fix parsing bug in _read() on unknown numeric IRC event, #21
+      * Fix setting nick in irc_rpl_welcome default handler, #20
+
 0.16     Sun Feb  8 11:41:48 2015
        * Add disconnect() can be called without a callback
          Contributor: Dan Book
