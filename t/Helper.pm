@@ -1,4 +1,5 @@
 package t::Helper;
+use Mojo::Base -strict;
 use Mojo::Util 'monkey_patch';
 use Test::More ();
 use Mojo::IRC;
@@ -7,11 +8,12 @@ sub import {
   my $class  = shift;
   my $caller = caller;
 
+  strict->import;
+  warnings->import;
+
   eval <<"HERE" or die $@;
   package $caller;
   use Test::More;
-  use strict;
-  use warnings;
   1;
 HERE
 

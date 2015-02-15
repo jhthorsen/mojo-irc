@@ -23,7 +23,7 @@ Mojo::IOLoop->server(
         my ($stream, $data) = @_;
         $read .= $data;
         $buf  .= irc_data('welcome') if $read =~ /NICK/ and !$seen{welcome}++;
-        $buf  .= irc_data('join.mojo') if $read =~ /JOIN/ and !$send{join}++;
+        $buf  .= irc_data('join.mojo') if $read =~ /JOIN/ and !$seen{join}++;
       }
     );
     $stream->$write;
@@ -67,8 +67,7 @@ sub irc_data {
 }
 
 sub start_ioloop {
-  $err    = 'ioloop-failed';
-  $status = 'ioloop-failed';
+  $err = 'ioloop-failed';
   my $tid = Mojo::IOLoop->timer(1 => sub { Mojo::IOLoop->stop });
   Mojo::IOLoop->start;
   Mojo::IOLoop->remove($tid);

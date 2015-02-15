@@ -50,8 +50,6 @@ sub irc_data {
 }
 
 sub start_ioloop {
-  $err    = 'ioloop-failed';
-  $status = 'ioloop-failed';
   my $tid = Mojo::IOLoop->timer(1 => sub { Mojo::IOLoop->stop });
   Mojo::IOLoop->start;
   Mojo::IOLoop->remove($tid);
