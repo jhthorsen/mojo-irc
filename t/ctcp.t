@@ -7,6 +7,8 @@ my $port        = generate_port();
 my $irc         = Mojo::IRC->new(nick => "mojo_irc", user => "u1", server => "127.0.0.1:$port");
 my $server_read = '';
 
+plan skip_all => 'http://www.cpantesters.org/cpan/report/a7e2d979-6c10-1014-9411-15f7e1165d23' if $^O eq 'MSWin32';
+
 Mojo::IOLoop->server(
   {port => $port},
   sub {
