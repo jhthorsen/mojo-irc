@@ -2,7 +2,7 @@ NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
 VERSION
-    0.18
+    0.19
 
 SYNOPSIS
       my $irc = Mojo::IRC->new(
@@ -117,7 +117,7 @@ ATTRIBUTES
     The name of this IRC client. Defaults to "Mojo IRC".
 
   nick
-    IRC nick name accessor.
+    IRC nick name accessor. Default to "user".
 
   parser
       $self = $self->parser($obj);
@@ -153,7 +153,8 @@ ATTRIBUTES
       # certtool --generate-self-signed --load-privkey client.key --outfile client.crt
 
   user
-    IRC username.
+    IRC username. Defaults to current logged in user or falls back to
+    "anonymous".
 
 METHODS
   connect
