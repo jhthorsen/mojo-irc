@@ -1,98 +1,98 @@
-Revision history for Mojo-IRC
+Revision history for perl distribution Mojo-IRC
 
-0.18     Sun Mar  1 18:05:08 2015
-       * More tests are skipped on MSWin32
+0.18 2015-03-01T18:05:08Z
+ - More tests are skipped on MSWin32
 
-0.17     Sun Feb 15 21:44:25 2015
-       * Fix parsing bug in _read() on unknown numeric IRC event, #21
-       * Fix setting nick in irc_rpl_welcome default handler, #20
+0.17 2015-02-15T21:44:25Z
+ - Fix parsing bug in _read() on unknown numeric IRC event, #21
+ - Fix setting nick in irc_rpl_welcome default handler, #20
 
-0.16     Sun Feb  8 11:41:48 2015
-       * Add disconnect() can be called without a callback
-         Contributor: Dan Book
-       * Fix "close" event can reconnect
-         Contributor: Dan Book
-       * Fix responding to CTCP messages
-       * Fix responding to CTCP PING message
+0.16 2015-02-08T11:41:48Z
+ - Add disconnect() can be called without a callback Contributor: Dan Book
+ - Fix "close" event can reconnect Contributor: Dan Book
+ - Fix responding to CTCP messages
+ - Fix responding to CTCP PING message
 
-0.15     Fri Jan  9 16:19:34 2015
-       * More robust unit tests
+0.15 2015-01-09T16:19:34Z
+ - More robust unit tests
 
-0.14     Fri Jan  2 13:31:11 2015
-       * Fix failing test on BSD
+0.14 2015-01-02T13:31:11Z
+ - Fix failing test on BSD
 
-0.13     Sun Sep 14 20:16:25 2014
-       * emit_safe() is deprecated in Mojolicious
+0.13 2014-09-14T20:16:25Z
+ - emit_safe() is deprecated in Mojolicious
 
-0.12     Sat Sep  6 19:25:13 2014
-       * Skip tests on MSWin32 #9
+0.12 2014-09-06T19:25:13Z
+ - Skip tests on MSWin32 #9
 
-0.11     Sun Aug 31 14:32:11 2014
-       * Fix update of current nick() on err_nicknameinuse()
+0.11 2014-08-31T14:32:11Z
+ - Fix update of current nick() on err_nicknameinuse()
 
-0.10     Sat Aug 16 20:24:25 2014
-       * Fix update of current nick()
-       * Deprecated change_nick()
+0.10 2014-08-16T20:24:25Z
+ - Fix update of current nick()
+ - Deprecated change_nick()
 
-0.09     Tue Jul 29 08:43:34 2014
-       * Fix emitting err_xxx events before irc_error
+0.09 2014-07-29T08:43:34Z
+ - Fix emitting err_xxx events before irc_error
 
-0.08     Sun Jul 27 19:06:53 2014
-       * Will also emit numeric events
-       * Move events out of main module documentation
-       * Deprecated irc_err_xxx events
+0.08 2014-07-27T19:06:53Z
+ - Will also emit numeric events
+ - Move events out of main module documentation
+ - Deprecated irc_err_xxx events
 
-0.07     Fri May 30 07:46:58 2014
-       * Fix Mojo::IRC for Mojolicious 5.0
+0.07 2014-05-30T07:46:58Z
+ - Fix Mojo::IRC for Mojolicious 5.0
 
-0.0601   Sat Feb 22 17:43:57 2014
-       * Fix missing ERR_ events.
-       * Started DEPRECATION process for irc_err_xxx events.
+0.0601 2014-02-22T17:43:57Z
+ - Fix missing ERR_ events.
+ - Started DEPRECATION process for irc_err_xxx events.
 
-0.06     Sat Feb 22 11:54:38 2014
-       * Allow offline mode with MOJO_IRC_OFFLINE=1
+0.06 2014-02-22T11:54:38Z
+ - Allow offline mode with MOJO_IRC_OFFLINE=1
 
-0.0501   Sat Feb 22 09:57:25 2014
-       * Add debug info to figure out failing error.t
-         http://www.cpantesters.org/cpan/report/3758769c-6bf4-1014-9dd5-8faa6c3f6a79
+0.0501 2014-02-22T09:57:25Z
+ - Add debug info to figure out failing error.t
+   http://www.cpantesters.org/cpan/report/3758769c-6bf4-1014-9dd5-8faa6c3f6
+   a79
 
-0.05     Fri Feb 21 20:52:39 2014
-       * Add parser() attribute
-       * Add ctcp() method to quote CTCP messages
-       * Add support for CTCP events
+0.05 2014-02-21T20:52:39Z
+ - Add parser() attribute
+ - Add ctcp() method to quote CTCP messages
+ - Add support for CTCP events
 
-0.04     Fri Feb 21 18:23:16 2014
-       * Fix PASS need to be sent before NICK and USER
-         http://www.irchelp.org/irchelp/rfc/chapter4.html#c4_1_1
-         Contributor: Stephan Jauernick
+0.04 2014-02-21T18:23:16Z
+ - Fix PASS need to be sent before NICK and USER
+   http://www.irchelp.org/irchelp/rfc/chapter4.html#c4_1_1 Contributor:
+   Stephan Jauernick
 
-0.0303   Tue Oct  1 12:23:30 2013
-       * Fix irc_err_nicknameinuse: Need to try with same nick, not modify
-         the nick attribute.
-       * Marked change_nick() as deprecated.
+0.0303 2013-10-01T12:23:30Z
+ - Fix irc_err_nicknameinuse: Need to try with same nick, not modify the
+   nick attribute.
+ - Marked change_nick() as deprecated.
 
-0.0302   Fri Sep  6 23:40:46 2013
-       * Fix t/error.t on windows
-       * Fix Makefile.PL
+0.0302 2013-09-06T23:40:46Z
+ - Fix t/error.t on windows
+ - Fix Makefile.PL
 
-0.0301   Wed Sep  4 23:46:41 2013
-       * Need to remove stream_id on error as well
+0.0301 2013-09-04T23:46:41Z
+ - Need to remove stream_id on error as well
 
-0.03     Wed Sep  4 13:48:26 2013
-       * Add support for TLS
-       * Change default ping interval to every 60 seconds
+0.03 2013-09-04T13:48:26Z
+ - Add support for TLS
+ - Change default ping interval to every 60 seconds
 
-0.0201   Fri Aug 16 23:31:03 2013
-       * Fix NAME in Makefile.PL
+0.0201 2013-08-16T23:31:03Z
+ - Fix NAME in Makefile.PL
 
-0.02     Mon Aug  5 12:40:20 2013
-       * Remove File::Slurp as a dependency
-       * Remove Carp as a dependency
-       * Add Test::more as a dependency
-       * Made unittest more robust. The write() of NICK, USER and JOIN
-         might be received at the server at once.
+0.02 2013-08-05T12:40:20Z
+ - Remove File::Slurp as a dependency
+ - Remove Carp as a dependency
+ - Add Test::more as a dependency
+ - Made unittest more robust. The write() of NICK, USER and JOIN might be
+   received at the server at once.
 
-0.01     Sat Aug  3 10:19:28 2013
-       * Add default event handlers
-       * Add change_nick()
-       * Add reconnect when changing server.
+0.01 2013-08-03T10:19:28Z
+ - Add default event handlers
+ - Add change_nick()
+ - Add reconnect when changing server.
+
