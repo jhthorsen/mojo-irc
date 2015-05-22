@@ -7,9 +7,8 @@ my $irc    = Mojo::IRC->new(server => $server);
 # simulate server/client communication
 $t->run(
   [
-    # Send t/data/welcome when client sends "NICK"
-    # The file contains the MOTD text
-    qr{\bNICK\b} => \"t/data/welcome",
+    # Send "welcome.irc" from the DATA section when client sends "NICK"
+    qr{\bNICK\b} => ["main", "motd.irc"],
   ],
   sub {
     my $err;
@@ -19,7 +18,7 @@ $t->run(
     $irc->connect(sub { $err = $_[1]; });
     Mojo::IOLoop->start;                                               # need to manually start the IOLoop
     is $err,  "", "connected";
-    is $motd, 19, "message of the day has of 15 lines";
+    is $motd, 3,  "message of the day";
   },
 );
 
@@ -27,3 +26,10 @@ $t->run(
 ok !$irc->has_subscribers('irc_rpl_motd'), 'irc_rpl_motd event removed';
 
 done_testing;
+__DATA__
+@@ motd.irc
+:spectral.shadowcat.co.uk 375 test123 :- spectral.shadowcat.co.uk Message of the Day -
+:spectral.shadowcat.co.uk 372 test123 :- We scan all connecting clients for open proxies and other
+:spectral.shadowcat.co.uk 372 test123 :- exploitable nasties. If you don't wish to be scanned,
+:spectral.shadowcat.co.uk 372 test123 :- don't connect again, and sorry for scanning you this time.
+:spectral.shadowcat.co.uk 376 test123 :End of /MOTD command.

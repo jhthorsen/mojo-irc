@@ -15,9 +15,8 @@ Test::Mojo::IRC - Module for testing Mojo::IRC
   # simulate server/client communication
   $t->run(
     [
-      # Send t/data/welcome when client sends "NICK"
-      # The file contains the MOTD text
-      qr{\bNICK\b} => \ "t/data/welcome",
+      # Send "welcome.irc" from the DATA section when client sends "NICK"
+      qr{\bNICK\b} => [ "main", "motd.irc" ],
     ],
     sub {
       my $err;
@@ -27,11 +26,19 @@ Test::Mojo::IRC - Module for testing Mojo::IRC
       $irc->connect(sub { $err = $_[1]; });
       Mojo::IOLoop->start; # need to manually start the IOLoop
       is $err, "", "connected";
-      is $motd, 19, "message of the day has of 15 lines";
+      is $motd, 3, "message of the day";
     },
   );
 
   done_testing;
+
+  __DATA__
+  @@ motd.irc
+  :spectral.shadowcat.co.uk 375 test123 :- spectral.shadowcat.co.uk Message of the Day -
+  :spectral.shadowcat.co.uk 372 test123 :- We scan all connecting clients for open proxies and other
+  :spectral.shadowcat.co.uk 372 test123 :- exploitable nasties. If you don't wish to be scanned,
+  :spectral.shadowcat.co.uk 372 test123 :- don't connect again, and sorry for scanning you this time.
+  :spectral.shadowcat.co.uk 376 test123 :End of /MOTD command.
 
 =head1 DESCRIPTION
 
@@ -103,8 +110,23 @@ events.
 C<$reply_on> is an array-ref of regex/buffer pairs. Each time a message
 from the client match the first regex in the C<$reply_on> array the
 buffer will be sent back to the client and the regex/buffer will be removed.
-This means that the order of the pairs are important. The buffer can be either
-a scalar ref (path to file) or a plain scalar (simple buffer).
+This means that the order of the pairs are important. The buffer can be...
+
+=over 4
+
+=item * Scalar
+
+Plain text.
+
+=item * Scalar ref
+
+Path to file on disk.
+
+=item * Array ref
+
+The module name and file passed on to L<Mojo::Loader/data_section>.
+
+=back
 
 Note that starting and stopping the L<IOLoop|Mojo::IOLoop> is up to you, but
 there is also a master timeout which will stop the IOLoop if running for too
@@ -189,7 +211,13 @@ sub start_server {
 sub _concat_server_buf {
   my ($self, $buf) = @_;
 
-  $buf = Mojo::Util::slurp(File::Spec->catfile(split '/', $$buf)) if ref $buf;
+  if (ref $buf eq 'ARRAY') {
+    $buf = Mojo::Loader::data_section(@$buf);
+  }
+  elsif (ref $buf) {
+    $buf = Mojo::Util::slurp(File::Spec->catfile(split '/', $$buf));
+  }
+
   $buf =~ s/\r?\n/\r\n/g;
   $self->{server_buf} .= $buf;
 }
