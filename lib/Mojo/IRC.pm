@@ -158,7 +158,7 @@ The name of this IRC client. Defaults to "Mojo IRC".
 
 =head2 nick
 
-IRC nick name accessor.
+IRC nick name accessor. Default to L</user>.
 
 =head2 parser
 
@@ -200,18 +200,18 @@ This can be generated using
 
 =head2 user
 
-IRC username.
+IRC username. Defaults to current logged in user or falls back to "anonymous".
 
 =cut
 
 has ioloop => sub { Mojo::IOLoop->singleton };
 has name   => 'Mojo IRC';
-has nick   => '';
+has nick   => sub { shift->user };
 has parser => sub { Parse::IRC->new; };
 has pass   => '';
 has real_host => '';
 has tls       => undef;
-has user      => '';
+has user      => sub { $ENV{USER} || getlogin || getpwuid($<) || 'anonymous' };
 
 sub server {
   my ($self, $server) = @_;

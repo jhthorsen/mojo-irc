@@ -1,5 +1,9 @@
 Revision history for perl distribution Mojo-IRC
 
+0.19 Not Released
+ - Changed default value for nick() to mirror user()
+ - Changed default value for user() to reflect current logged in user
+
 0.18 2015-03-01T18:05:08Z
  - More tests are skipped on MSWin32
 
