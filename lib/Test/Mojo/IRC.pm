@@ -143,7 +143,6 @@ sub run {
 
   local $self->{from_client}   = '';
   local $self->{reply_on}      = $reply_on;
-  local $self->{server_buf}    = '';
   local $self->{subscriptions} = \@subscriptions;
 
   $self->$cb;
@@ -205,7 +204,8 @@ sub start_server {
     }
   );
 
-  $self->{server} = "127.0.0.1:$port";
+  $self->{server_buf} = '';
+  $self->{server}     = "127.0.0.1:$port";
 }
 
 sub _concat_server_buf {

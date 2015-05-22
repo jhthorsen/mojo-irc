@@ -1,7 +1,8 @@
 Revision history for perl distribution Mojo-IRC
 
-0.20
+0.20 Not Released
  - Test::Mojo::IRC can fetch server output from __DATA__ section
+ - Fix "choppy" buffer from Test::Mojo::IRC test server
 
 0.19 2015-05-22T13:44:50+0200
  - Add Test::Mojo::IRC
