@@ -8,6 +8,7 @@
 /Makefile
 /Makefile.old
 /cover_db/
+/local
 *.old
 *.swp
 ~$
