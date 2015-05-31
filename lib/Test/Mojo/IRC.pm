@@ -236,9 +236,10 @@ sub import {
   my $arg    = shift // '';
   my $caller = caller;
 
-  return unless $arg eq '-basic';
+  return unless $arg =~ /^(?:-basic|-ua)$/;
   $_->import for qw(strict warnings utf8);
   feature->import(':5.10');
+  eval "require Mojo::IRC::UA;1" or die $@ if $arg eq '-ua';
   eval "package $caller; use Test::More; 1" or die $@;
 }
 
