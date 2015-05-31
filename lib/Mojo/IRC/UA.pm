@@ -47,7 +47,57 @@ following new ones.
 L<Mojo::IRC::UA> inherits all methods from L<Mojo::IRC> and implements the
 following new ones.
 
+=head2 nick
+
+  $self = $self->nick($nick => sub { my ($self, $err) = @_; });
+  $self = $self->nick(sub { my ($self, $err, $nick) = @_; });
+
+Used to set or get the nick for this connection.
+
+Setting the nick will change L</nick> I<after> the nick is actually
+changed on the server.
+
 =cut
+
+sub nick {
+  my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
+  my ($self, $nick) = @_;
+
+  unless ($cb) {
+    return $self->{nick} ||= $self->user unless defined $nick;
+    $self->{nick} = $nick;
+    return $self;
+  }
+
+  if ($nick) {
+    if ($self->{stream}) {
+      $self->_write_and_wait(
+        Parse::IRC::parse_irc("NICK $nick"),
+        {
+          err_erroneusnickname => {0 => $nick},
+          err_nickcollision    => {0 => $nick},
+          err_nicknameinuse    => {0 => $nick},
+          err_restricted       => {},
+          err_unavailresource  => {},
+          irc_nick             => {0 => $nick},    # :Superman12923!superman@i.love.debian.org NICK :Supermanx12923
+        },
+        sub {
+          my ($self, $event, $err, $msg) = @_;
+          $self->nick($nick) if $event eq 'irc_nick';
+          $self->$cb($event =~ /^err_/ ? $err || $msg->{params}[2] || $event : '');
+        }
+      );
+    }
+    else {
+      $self->nick($nick)->$cb('');
+    }
+  }
+  else {
+    $self->$cb('', $self->nick);
+  }
+
+  return $self;
+}
 
 sub _write_and_wait {
   my ($self, $msg, $look_for, $handler) = @_;
