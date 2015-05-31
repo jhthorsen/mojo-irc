@@ -2,8 +2,9 @@ Revision history for perl distribution Mojo-IRC
 
 0.22 Not Released
  - Add Mojo::IRC::UA
- - Add Mojo::IRC::UA->nick() method
+ - Add Mojo::IRC::UA->channels() method
  - Add Mojo::IRC::UA->join_channel() method
+ - Add Mojo::IRC::UA->nick() method
 
 0.21 2015-05-31T07:54:33+0200
  - Deprecated MOJO_IRC_OFFLINE in favor of Test::Mojo::IRC

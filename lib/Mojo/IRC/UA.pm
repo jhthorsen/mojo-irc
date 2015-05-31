@@ -47,6 +47,44 @@ following new ones.
 L<Mojo::IRC::UA> inherits all methods from L<Mojo::IRC> and implements the
 following new ones.
 
+=head2 channels
+
+  $self = $self->channels(sub { my ($self, $err, $channels) = @_; });
+
+Will retrieve available channels on the IRC server. C<$channels> has this
+structure on success:
+
+  {
+    "#convos" => {n_users => 4, topic => "[+nt] some cool topic"},
+  }
+
+NOTE: This might take a long time, if the server has a lot of channels.
+
+=cut
+
+sub channels {
+  my ($self, $cb) = @_;
+  my %channels;
+
+  return $self->_write_and_wait(
+    Parse::IRC::parse_irc("LIST"),
+    {
+      irc_rpl_listend => {},     # :hybrid8.debian.local 323 superman :End of /LIST
+      irc_rpl_list    => sub {
+        my ($self, $msg) = @_;
+        $channels{$msg->{params}[1]} = {n_users => $msg->{params}[2], topic => $msg->{params}[3] // ''};
+      },
+    },
+    sub {
+      my ($self, $event, $err, $msg) = @_;
+      my $n = 0;
+
+      return $self->$cb($err || $msg->{params}[1] || $event, []) if $event =~ /^err_/;
+      return $self->$cb('', \%channels);
+    },
+  );
+}
+
 =head2 join_channel
 
   $self = $self->join_channel($channel => sub { my ($self, $err, $info) = @_; });
