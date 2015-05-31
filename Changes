@@ -4,6 +4,7 @@ Revision history for perl distribution Mojo-IRC
  - Add Mojo::IRC::UA
  - Add Mojo::IRC::UA->channels() method
  - Add Mojo::IRC::UA->channel_topic() method
+ - Add Mojo::IRC::UA->channel_users() method
  - Add Mojo::IRC::UA->join_channel() method
  - Add Mojo::IRC::UA->nick() method
  - Add Mojo::IRC::UA->whois() method

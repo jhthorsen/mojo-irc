@@ -133,6 +133,44 @@ sub channel_topic {
   );
 }
 
+=head2 channel_users
+
+  $self = $self->channel_users($channel, sub { my ($self, $err, $users) = @_; });
+
+This can retrieve the users in a channel. C<$users> contains this structure:
+
+  {
+    jhthorsen => {mode => "@"},
+    Superman  => {mode => ""},
+  }
+
+This method is EXPERIMENTAL and can change without warning.
+
+=cut
+
+sub channel_users {
+  my ($self, $channel, $cb) = @_;
+  my $users = {};
+
+  return $self->tap($cb, "Cannot get users without channel name.", "") unless $channel;    # err_needmoreparams
+  return $self->_write_and_wait(
+    Parse::IRC::parse_irc("NAMES $channel"),
+    {
+      err_toomanymatches => {1 => $channel},
+      err_nosuchserver   => {},
+      irc_rpl_endofnames => {1 => $channel},
+      irc_rpl_namreply   => sub {
+        my ($self, $msg) = @_;
+        $self->_parse_namreply($msg, $users) if $msg->{params}[2] eq $channel;
+      },
+    },
+    sub {
+      my ($self, $event, $err, $msg) = @_;
+      $self->$cb($event =~ /^err_/ ? $err || $msg->{params}[2] || $event : '', $users);
+    }
+  );
+}
+
 =head2 join_channel
 
   $self = $self->join_channel($channel => sub { my ($self, $err, $info) = @_; });
