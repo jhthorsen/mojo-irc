@@ -59,31 +59,11 @@ This class inherit from L<Mojo::EventEmitter>.
 
 =head1 TESTING
 
-Set L<MOJO_IRC_OFFLINE> to allow testing without a remote host. Example:
+The module L<Test::Mojo::IRC> is useful if you want to write tests without
+having a running IRC server.
 
-  BEGIN { $ENV{MOJO_IRC_OFFLINE} = 1 }
-  use Mojo::Base -strict;
-  use Mojo::IRC;
-  use Test::More;
-
-  my $irc = Mojo::IRC->new(nick => 'batman', server => 'test.com');
-  $irc->parser(Parse::IRC->new(ctcp => 1));
-
-  $irc->on(
-    ctcp_avatar => sub {
-      my($irc, $message) = @_;
-      $irc->write(
-        NOTICE => $message->{params}[0],
-        $irc->ctcp(AVATAR => 'https://graph.facebook.com/jhthorsen/picture'),
-      );
-    }
-  );
-
-  $irc->from_irc_server(":abc-123 PRIVMSG batman :\x{1}AVATAR\x{1}\r\n");
-  like $irc->{to_irc_server}, qr{NOTICE batman :\x{1}AVATAR https://graph.facebook.com/jhthorsen/picture\x{1}\r\n}, 'sent AVATAR';
-  done_testing;
-
-NOTE! C<from_irc_server()> is only available when C<MOJO_IRC_OFFLINE> is set.
+L<MOJO_IRC_OFFLINE> (from v0.20) is now DEPRECATED in favor of
+L<Test::Mojo::IRC>.
 
 =head1 EVENTS
 
@@ -265,6 +245,7 @@ sub connect {
   $self->register_default_event_handlers;
 
   if (OFFLINE) {
+    warn "MOJO_IRC_OFFLINE is deprecated! Use Test::Mojo::IRC instead";
     $self->write(PASS => $self->pass, sub { }) if length $self->pass;
     $self->write(NICK => $self->nick, sub { });
     $self->write(USER => $self->user, 8, '*', ':' . $self->name, sub { });
@@ -415,6 +396,7 @@ sub write {
 
   Scalar::Util::weaken($self);
   if (OFFLINE) {
+    warn "MOJO_IRC_OFFLINE is deprecated! Use Test::Mojo::IRC instead";
     $self->{to_irc_server} .= "$buf\r\n";
     $self->$cb('');
   }
@@ -595,7 +577,11 @@ CHUNK:
 }
 
 if (OFFLINE) {
-  *from_irc_server = \&_read;
+  warn "MOJO_IRC_OFFLINE is deprecated! Use Test::Mojo::IRC instead";
+  *from_irc_server = sub {
+    warn "MOJO_IRC_OFFLINE is deprecated! Use Test::Mojo::IRC instead";
+    goto &_read;
+    }
 }
 
 =head1 COPYRIGHT
