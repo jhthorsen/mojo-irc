@@ -6,6 +6,7 @@ Revision history for perl distribution Mojo-IRC
  - Add Mojo::IRC::UA->channel_topic() method
  - Add Mojo::IRC::UA->join_channel() method
  - Add Mojo::IRC::UA->nick() method
+ - Add Mojo::IRC::UA->whois() method
 
 0.21 2015-05-31T07:54:33+0200
  - Deprecated MOJO_IRC_OFFLINE in favor of Test::Mojo::IRC

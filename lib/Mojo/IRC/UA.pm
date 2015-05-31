@@ -248,6 +248,70 @@ sub nick {
   return $self;
 }
 
+=head2 whois
+
+  $self = $self->whois($target, sub { my ($self, $err, $info) = @_; });
+
+Used to retrieve information about a user. C<$info> contains this information
+on success:
+
+  {
+    channels => {"#convos => {mode => "@"}],
+    idle_for => 17454,
+    name     => "Jan Henning Thorsen",
+    nick     => "batman",
+    server   => "hybrid8.debian.local",
+    user     => "jhthorsen",
+  },
+
+=cut
+
+sub whois {
+  my ($self, $target, $cb) = @_;
+  my $info = {channels => {}, name => '', nick => $target, server => '', user => ''};
+
+  return $self->tap($cb, "Cannot retrieve whois information without target.", {}) unless $target;  # err_nonicknamegiven
+  return $self->_write_and_wait(
+    Parse::IRC::parse_irc("WHOIS $target"),
+    {
+      err_nosuchnick     => {1 => $target},    # :hybrid8.debian.local 401 superman batman :No such nick/channel
+      err_nosuchserver   => {1 => $target},
+      irc_rpl_away       => {1 => $target},
+      irc_rpl_endofwhois => {1 => $target},
+      irc_rpl_whoischannels => sub {
+        my ($self, $msg) = @_;
+        return unless $msg->{params}[1] eq $target;
+        for (split /\s+/, $msg->{params}[2] || '') {
+          my ($mode, $channel) = /^([+@]?)(.+)$/;
+          $info->{channels}{$channel} = {mode => $mode};
+        }
+      },
+      irc_rpl_whoisidle => sub {
+        my ($self, $msg) = @_;
+        return unless $msg->{params}[1] eq $target;
+        $info->{idle_for} = 0 + $msg->{params}[2];
+      },
+      irc_rpl_whoisoperator => {},     # TODO
+      irc_rpl_whoisserver   => sub {
+        my ($self, $msg) = @_;
+        return unless $msg->{params}[1] eq $target;
+        $info->{server} = $msg->{params}[2];
+      },
+      irc_rpl_whoisuser => sub {
+        my ($self, $msg) = @_;
+        return unless $msg->{params}[1] eq $target;
+        $info->{nick} = $msg->{params}[1];
+        $info->{user} = $msg->{params}[2];
+        $info->{name} = $msg->{params}[5];
+      },
+    },
+    sub {
+      my ($self, $event, $err, $msg) = @_;
+      $self->$cb($event =~ /^err_/ ? $err || $msg->{params}[2] || $event : '', $info);
+    }
+  );
+}
+
 sub _parse_namreply {
   my ($self, $msg, $users) = @_;
 
