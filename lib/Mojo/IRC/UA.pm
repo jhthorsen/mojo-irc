@@ -85,6 +85,54 @@ sub channels {
   );
 }
 
+=head2 channel_topic
+
+  $self = $self->channel_topic($channel, $topic, sub { my ($self, $err) = @_; });
+  $self = $self->channel_topic($channel, sub { my ($self, $err, $topic) = @_; });
+
+Used to get or set topic for a channel.
+
+=cut
+
+sub channel_topic {
+  my $cb = pop;
+  my ($self, $channel, $topic) = @_;
+  my $res = length($topic // '') ? {} : undef;
+
+  return $self->tap($cb, "Cannot get/set topic without channel name.", "") unless $channel;    # err_needmoreparams
+  return $self->tap($cb, "Cannot get/set topic on channel with spaces.") if $channel =~ /\s/;
+  return $self->_write_and_wait(
+    $res ? Parse::IRC::parse_irc("TOPIC $channel :$topic") : Parse::IRC::parse_irc("TOPIC $channel"),
+    {
+      err_chanoprivsneeded => {1 => $channel},
+      err_nochanmodes      => {1 => $channel},
+      err_notonchannel     => {1 => $channel},
+      irc_rpl_notopic      => {1 => $channel},
+      irc_rpl_topic        => {1 => $channel},    # :hybrid8.debian.local 332 superman #convos :get cool topic
+      irc_topic            => {1 => $channel},    # set
+    },
+    sub {
+      my ($self, $event, $err, $msg) = @_;
+
+      if ($event eq 'irc_rpl_notopic') {
+        $res->{message} = '';
+      }
+      elsif ($event eq 'irc_rpl_topic') {
+        $res->{message} = $msg->{params}[2] // '';
+      }
+      elsif ($event eq 'irc_topic') {
+        $err = '';
+      }
+      else {
+        $err ||= $msg->{params}[2] || $event;
+      }
+
+      return $self->$cb($err, $res) if $res;
+      return $self->$cb($err);
+    }
+  );
+}
+
 =head2 join_channel
 
   $self = $self->join_channel($channel => sub { my ($self, $err, $info) = @_; });
