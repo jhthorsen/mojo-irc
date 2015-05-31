@@ -2,7 +2,7 @@ NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
 VERSION
-    0.20
+    0.21
 
 SYNOPSIS
       my $irc = Mojo::IRC->new(
@@ -52,32 +52,11 @@ DESCRIPTION
     This class inherit from Mojo::EventEmitter.
 
 TESTING
-    Set MOJO_IRC_OFFLINE to allow testing without a remote host. Example:
+    The module Test::Mojo::IRC is useful if you want to write tests without
+    having a running IRC server.
 
-      BEGIN { $ENV{MOJO_IRC_OFFLINE} = 1 }
-      use Mojo::Base -strict;
-      use Mojo::IRC;
-      use Test::More;
-
-      my $irc = Mojo::IRC->new(nick => 'batman', server => 'test.com');
-      $irc->parser(Parse::IRC->new(ctcp => 1));
-
-      $irc->on(
-        ctcp_avatar => sub {
-          my($irc, $message) = @_;
-          $irc->write(
-            NOTICE => $message->{params}[0],
-            $irc->ctcp(AVATAR => 'https://graph.facebook.com/jhthorsen/picture'),
-          );
-        }
-      );
-
-      $irc->from_irc_server(":abc-123 PRIVMSG batman :\x{1}AVATAR\x{1}\r\n");
-      like $irc->{to_irc_server}, qr{NOTICE batman :\x{1}AVATAR https://graph.facebook.com/jhthorsen/picture\x{1}\r\n}, 'sent AVATAR';
-      done_testing;
-
-    NOTE! "from_irc_server()" is only available when "MOJO_IRC_OFFLINE" is
-    set.
+    MOJO_IRC_OFFLINE (from v0.20) is now DEPRECATED in favor of
+    Test::Mojo::IRC.
 
 EVENTS
   close
