@@ -47,6 +47,69 @@ following new ones.
 L<Mojo::IRC::UA> inherits all methods from L<Mojo::IRC> and implements the
 following new ones.
 
+=head2 join_channel
+
+  $self = $self->join_channel($channel => sub { my ($self, $err, $info) = @_; });
+
+Used to join an IRC channel. C<$err> will be false (empty string) on a
+successful join. C<$info> can contain information about the joined channel:
+
+  {
+    topic    => "some cool topic",
+    topic_by => "jhthorsen",
+    users    => {
+      jhthorsen => {mode => "@"},
+      Superman  => {mode => ""},
+    },
+  }
+
+NOTE! This method will fail if the channel is already joined. Unfortunately,
+the way it will fail is simply by not calling the callback. This should be
+fixed - Just don't know how yet.
+
+=cut
+
+sub join_channel {
+  my ($self, $name, $cb) = @_;
+  my $info = {topic => '', topic_by => '', users => {}};
+
+  # err_needmoreparams and will not allow special "JOIN 0"
+  return $self->tap($cb, "Cannot join without channel name.") unless $name;
+  return $self->tap($cb, "Cannot join channel with spaces.") if $name =~ /\s/;
+  return $self->_write_and_wait(
+    Parse::IRC::parse_irc("JOIN $name"),
+    {
+      err_badchanmask     => {1 => $name},
+      err_badchannelkey   => {1 => $name},
+      err_bannedfromchan  => {1 => $name},    # :hybrid8.debian.local 474 superman #convos :Cannot join channel (+b)
+      err_channelisfull   => {1 => $name},
+      err_inviteonlychan  => {1 => $name},
+      err_nosuchchannel   => {1 => $name},    # :hybrid8.debian.local 403 nick #convos :No such channel
+      err_toomanychannels => {1 => $name},
+      err_toomanytargets  => {1 => $name},
+      err_unavailresource => {1 => $name},
+      irc_479             => {1 => $name},    # Illegal channel name
+      irc_rpl_endofnames  => {1 => $name},    # :hybrid8.debian.local 366 superman #convos :End of /NAMES list.
+      irc_rpl_namreply    => sub {
+        my ($self, $msg) = @_;
+        $self->_parse_namreply($msg, $info->{users}) if $msg->{params}[2] eq $name;
+      },
+      irc_rpl_topic => sub {
+        my ($self, $msg) = @_;
+        $info->{topic} = $msg->{params}[2] if $msg->{params}[1] eq $name;
+      },
+      irc_rpl_topicwhotime => sub {
+        my ($self, $msg) = @_;
+        $info->{topic_by} = $msg->{params}[2] if $msg->{params}[1] eq $name;
+      },
+    },
+    sub {
+      my ($self, $event, $err, $msg) = @_;
+      $self->$cb($event =~ /^(?:err_|irc_479)/ ? $err || $msg->{params}[2] || $event : '', $info);
+    }
+  );
+}
+
 =head2 nick
 
   $self = $self->nick($nick => sub { my ($self, $err) = @_; });
@@ -99,6 +162,14 @@ sub nick {
   return $self;
 }
 
+sub _parse_namreply {
+  my ($self, $msg, $users) = @_;
+
+  for my $nick (sort { lc $a cmp lc $b } split /\s+/, $msg->{params}[3]) {
+    $users->{$nick}{mode} = $nick =~ s/^([@~+*])// ? $1 : '';
+  }
+}
+
 sub _write_and_wait {
   my ($self, $msg, $look_for, $handler) = @_;
   my ($tid, $timeout, @subscriptions);
@@ -130,6 +201,7 @@ sub _write_and_wait {
     push @subscriptions, $event, $self->on(
       $event => sub {
         my ($self, $msg) = @_;
+        return $self->$needle($msg) if ref $needle eq 'CODE';
         return unless all { +(/^\d/ ? $msg->{params}[$_] : $msg->{$_}) // '' eq $needle->{$_} } keys %$needle;
         Mojo::IOLoop->remove($tid);
         $self->unsubscribe(shift @subscriptions, shift @subscriptions) while @subscriptions;
