@@ -15,6 +15,12 @@ WriteMakefile(
     },
   },
   BUILD_REQUIRES => {'Test::More' => '0.88'},
-  PREREQ_PM => {'IRC::Utils' => '0.12', 'Mojolicious' => '4.30', 'Parse::IRC' => '1.20', 'Unicode::UTF8' => '0.59'},
+  PREREQ_PM      => {
+    'IRC::Utils'    => '0.12',
+    'List::Util'    => '1.00',
+    'Mojolicious'   => '4.30',
+    'Parse::IRC'    => '1.20',
+    'Unicode::UTF8' => '0.59'
+  },
   test => {TESTS => (-e 'META.yml' ? 't/*.t' : 't/*.t xt/*.t')},
 );

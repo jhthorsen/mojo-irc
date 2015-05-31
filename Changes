@@ -1,6 +1,6 @@
 Revision history for perl distribution Mojo-IRC
 
-0.22 Not Released
+0.22 2015-05-31T09:21:58+0200
  - Add Mojo::IRC::UA
  - Add Mojo::IRC::UA->channels() method
  - Add Mojo::IRC::UA->channel_topic() method
