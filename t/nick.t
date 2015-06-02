@@ -3,12 +3,12 @@ use warnings;
 use Mojo::IRC;
 use Test::More;
 
-my $irc = Mojo::IRC->new(nick => 'fooman', stream => dummy_stream());
+my $irc = Mojo::IRC->new(user => 'foo.man', stream => dummy_stream());
 
-$irc->irc_nick({prefix => 'ads!user@host', params => ['newnick'],});
-is $irc->nick, 'fooman', 'nick() did not change to newnick';
+$irc->irc_nick({prefix => 'what!ever@host', params => ['newnick']});
+is $irc->nick, 'foo_man', 'nick() did not change to newnick';
 
-$irc->irc_nick({prefix => 'fooman!user@host', params => ['foowoman']});
+$irc->irc_nick({prefix => 'foo_man!foo.man@host', params => ['foowoman']});
 is $irc->nick, 'foowoman', 'nick() changed to foowoman';
 
 my %nicks = qw( ~ tilde & and @ at % percent + plus );

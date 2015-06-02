@@ -251,7 +251,7 @@ sub nick {
   my ($self, $nick) = @_;
 
   unless ($cb) {
-    return $self->{nick} ||= $self->user unless defined $nick;
+    return $self->{nick} ||= $self->_build_nick unless defined $nick;
     $self->{nick} = $nick;
     return $self;
   }

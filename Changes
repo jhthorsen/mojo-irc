@@ -1,5 +1,8 @@
 Revision history for perl distribution Mojo-IRC
 
+0.24 Not Released
+ - Fix default nick only contains [a-z] and "_".
+
 0.23 2015-06-02T00:46:24+0200
  - Fix requirement to Mojo::Util (Need version 1.33)
 

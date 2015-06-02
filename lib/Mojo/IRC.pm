@@ -186,7 +186,7 @@ IRC username. Defaults to current logged in user or falls back to "anonymous".
 
 has ioloop => sub { Mojo::IOLoop->singleton };
 has name   => 'Mojo IRC';
-has nick   => sub { shift->user };
+has nick   => sub { shift->_build_nick };
 has parser => sub { Parse::IRC->new; };
 has pass   => '';
 has real_host => '';
@@ -549,6 +549,12 @@ sub DESTROY {
 
   $ioloop->remove($sid) if $sid;
   $ioloop->remove($tid) if $tid;
+}
+
+sub _build_nick {
+  my $nick = shift->user;
+  $nick =~ s![^a-z_]!_!g;
+  $nick;
 }
 
 # Can be used in unittest to mock input data:
