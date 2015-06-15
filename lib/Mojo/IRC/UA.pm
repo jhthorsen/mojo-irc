@@ -72,7 +72,9 @@ sub channels {
       irc_rpl_listend => {},     # :hybrid8.debian.local 323 superman :End of /LIST
       irc_rpl_list    => sub {
         my ($self, $msg) = @_;
-        $channels{$msg->{params}[1]} = {n_users => $msg->{params}[2], topic => $msg->{params}[3] // ''};
+        my $topic = $msg->{params}[3] // '';
+        $topic =~ s!^\[\+[a-z]+\]\s?!!;    # remove mode from topic, such as [+nt]
+        $channels{$msg->{params}[1]} = {n_users => $msg->{params}[2], topic => $topic};
       },
     },
     sub {

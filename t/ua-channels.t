@@ -14,11 +14,8 @@ $t->run(
     $irc->channels(sub { ($err, $channels) = @_[1, 2]; Mojo::IOLoop->stop });
     Mojo::IOLoop->start;
     is $err, '', 'err';
-    is_deeply(
-      $channels,
-      {'#test123' => {n_users => 1, topic => '[+nt]'}, '#convos' => {n_users => 4, topic => '[+nt] some cool topic'},},
-      'channels'
-    );
+    is_deeply($channels,
+      {'#test123' => {n_users => 1, topic => ''}, '#convos' => {n_users => 4, topic => 'some cool topic'}}, 'channels');
   },
 );
 

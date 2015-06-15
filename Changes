@@ -1,5 +1,8 @@
 Revision history for perl distribution Mojo-IRC
 
+0.25 Not Released
+ - Remove [+nt] and friends from topic returned from channels()
+
 0.24 2015-06-02T22:18:12+0200
  - Fix default nick only contains [a-z] and "_".
 
