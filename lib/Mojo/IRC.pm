@@ -566,7 +566,7 @@ sub _read {
   $self->{buffer} .= Unicode::UTF8::decode_utf8($_[0], sub { $_[0] });
 
 CHUNK:
-  while ($self->{buffer} =~ s/^([^\r\n]+)\r\n//m) {
+  while ($self->{buffer} =~ s/^([^\015\012]+)[\015\012]//m) {
     warn "[$self->{debug_key}] >>> $1\n" if DEBUG;
     my $message = $self->parser->parse($1);
     my $command = $message->{command} or next CHUNK;

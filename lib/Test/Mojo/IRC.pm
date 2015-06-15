@@ -188,7 +188,7 @@ sub start_server {
           my ($stream, $buf) = @_;
           $self->{from_client} .= $buf;
 
-          while ($buf =~ /\r\n/g) {
+          while ($buf =~ /[\015\012]/g) {
             last unless @{$self->{reply_on}};
             last unless $self->{from_client} =~ $self->{reply_on}[0];
             $self->_concat_server_buf($self->{reply_on}[1]);
@@ -218,7 +218,7 @@ sub _concat_server_buf {
     $buf = Mojo::Util::slurp(File::Spec->catfile(split '/', $$buf));
   }
 
-  $buf =~ s/\r?\n/\r\n/g;
+  $buf =~ s/[\015\012]/\015\012/g;
   $self->{server_buf} .= $buf;
 }
 
