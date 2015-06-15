@@ -2,7 +2,7 @@ NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
 VERSION
-    0.24
+    0.25
 
 SYNOPSIS
       my $irc = Mojo::IRC->new(
