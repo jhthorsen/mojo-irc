@@ -18,7 +18,7 @@ WriteMakefile(
   PREREQ_PM      => {
     'IRC::Utils'    => '0.12',
     'List::Util'    => '1.33',
-    'Mojolicious'   => '4.30',
+    'Mojolicious'   => '6.00',
     'Parse::IRC'    => '1.20',
     'Unicode::UTF8' => '0.59'
   },

@@ -1,5 +1,8 @@
 Revision history for perl distribution Mojo-IRC
 
+0.26 2015-07-11T13:26:26+0200
+ - Bumping Mojolicious requirement to 6.00
+
 0.25 2015-06-15T15:31:27+0200
  - Remove [+nt] and friends from topic returned from channels()
  - Fix parsing to allow CR or LF at buffer end. #24
