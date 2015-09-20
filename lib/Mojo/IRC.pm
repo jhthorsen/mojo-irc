@@ -115,7 +115,6 @@ use Unicode::UTF8;
 use constant DEBUG => $ENV{MOJO_IRC_DEBUG} ? 1 : 0;
 use constant DEFAULT_CERT => $ENV{MOJO_IRC_CERT_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.crt';
 use constant DEFAULT_KEY  => $ENV{MOJO_IRC_KEY_FILE}  || catfile dirname(__FILE__), 'mojo-irc-client.key';
-use constant OFFLINE => $ENV{MOJO_IRC_OFFLINE} ? 1 : 0;
 
 our $VERSION = '0.26';
 
@@ -243,15 +242,6 @@ sub connect {
   $self->{buffer} = '';
   $self->{debug_key} ||= "$host:$port";
   $self->register_default_event_handlers;
-
-  if (OFFLINE) {
-    warn "MOJO_IRC_OFFLINE is deprecated! Use Test::Mojo::IRC instead";
-    $self->write(PASS => $self->pass, sub { }) if length $self->pass;
-    $self->write(NICK => $self->nick, sub { });
-    $self->write(USER => $self->user, 8, '*', ':' . $self->name, sub { });
-    $self->$cb('');
-    return $self;
-  }
 
   Scalar::Util::weaken($self);
   $self->{stream_id} = $self->ioloop->client(
@@ -395,12 +385,7 @@ sub write {
   my $buf  = Unicode::UTF8::encode_utf8(join(' ', @_), sub { $_[0] });
 
   Scalar::Util::weaken($self);
-  if (OFFLINE) {
-    warn "MOJO_IRC_OFFLINE is deprecated! Use Test::Mojo::IRC instead";
-    $self->{to_irc_server} .= "$buf\r\n";
-    Mojo::IOLoop->next_tick(sub { $self->$cb('') });
-  }
-  elsif (ref $self->{stream}) {
+  if (ref $self->{stream}) {
     warn "[$self->{debug_key}] <<< $buf\n" if DEBUG;
     $self->{stream}->write("$buf\r\n", sub { $self->$cb(''); });
   }
@@ -580,14 +565,6 @@ CHUNK:
     $self->emit(lc($command) => $message);
     $self->emit(irc_error => $message) if $command =~ /^ERR_/;
   }
-}
-
-if (OFFLINE) {
-  warn "MOJO_IRC_OFFLINE is deprecated! Use Test::Mojo::IRC instead";
-  *from_irc_server = sub {
-    warn "MOJO_IRC_OFFLINE is deprecated! Use Test::Mojo::IRC instead";
-    goto &_read;
-    }
 }
 
 =head1 COPYRIGHT

@@ -39,7 +39,7 @@ is $err, '', 'no error on connect';
 
 delete $ctcp_action_message->{raw_line};
 is_deeply($ctcp_action_message,
-  {command => 'CTCP_ACTION', params => [qw( #channel msg1 )], prefix => 'other_client!u2@other.example.com'},
+  {command => 'CTCP_ACTION', params => ['#channel', 'msg1'], prefix => 'other_client!u2@other.example.com'},
   'CTCP ACTION');
 
 is $server_read, <<"HERE", "got correct response from mojo_irc";
