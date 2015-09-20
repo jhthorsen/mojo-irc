@@ -1,5 +1,8 @@
 Revision history for perl distribution Mojo-IRC
 
+0.27 Not Released
+ - Fix calling callbacks async
+
 0.26 2015-07-11T13:26:26+0200
  - Bumping Mojolicious requirement to 6.00
 

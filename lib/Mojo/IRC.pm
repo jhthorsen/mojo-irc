@@ -228,7 +228,7 @@ sub connect {
   my @tls;
 
   if ($self->{stream_id}) {
-    $self->$cb('');
+    Mojo::IOLoop->next_tick(sub { $self->$cb('') });
     return $self;
   }
 
@@ -351,8 +351,8 @@ sub disconnect {
       }
     );
   }
-  else {
-    $self->$cb if $cb;
+  elsif ($cb) {
+    Mojo::IOLoop->next_tick(sub { $self->$cb });
   }
 
   $self;
@@ -398,14 +398,14 @@ sub write {
   if (OFFLINE) {
     warn "MOJO_IRC_OFFLINE is deprecated! Use Test::Mojo::IRC instead";
     $self->{to_irc_server} .= "$buf\r\n";
-    $self->$cb('');
+    Mojo::IOLoop->next_tick(sub { $self->$cb('') });
   }
   elsif (ref $self->{stream}) {
     warn "[$self->{debug_key}] <<< $buf\n" if DEBUG;
     $self->{stream}->write("$buf\r\n", sub { $self->$cb(''); });
   }
   else {
-    $self->$cb('Not connected');
+    Mojo::IOLoop->next_tick(sub { $self->$cb('Not connected.') });
   }
 
   $self;

@@ -10,13 +10,15 @@ Mojo::IOLoop->start;
 {
   my $err;
   $irc->channel_topic("", "0", sub { $err = $_[1]; Mojo::IOLoop->stop });
+  Mojo::IOLoop->start;
   is $err, 'Cannot get/set topic without channel name.', 'channel name missing';
 }
 
 {
   my $err;
   $irc->channel_topic("channel with space", "", sub { $err = $_[1]; Mojo::IOLoop->stop });
-  is $err, 'Cannot get/set topic on channel with spaces.', 'channel name with whitespace';
+  Mojo::IOLoop->start;
+  is $err, 'Cannot get/set topic on channel with spaces in name.', 'channel name with whitespace';
 }
 
 $t->run(

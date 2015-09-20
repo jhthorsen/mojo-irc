@@ -189,7 +189,7 @@ sub start_server {
           $self->{from_client} .= $buf;
 
           while ($buf =~ /[\015\012]/g) {
-            last unless @{$self->{reply_on}};
+            last unless @{$self->{reply_on} || []};
             last unless $self->{from_client} =~ $self->{reply_on}[0];
             $self->_concat_server_buf($self->{reply_on}[1]);
             splice @{$self->{reply_on}}, 0, 2, ();

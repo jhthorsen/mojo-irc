@@ -4,20 +4,22 @@ my $t      = Test::Mojo::IRC->new;
 my $server = $t->start_server;
 my $irc    = Mojo::IRC::UA->new(server => $server, user => "test$$");
 
-$irc->connect(sub { Mojo::IOLoop->stop });
-Mojo::IOLoop->start;
-
 {
   my $err;
   $irc->join_channel("", sub { $err = $_[1]; Mojo::IOLoop->stop });
+  Mojo::IOLoop->start;
   is $err, 'Cannot join without channel name.', 'channel name missing';
 }
 
 {
   my $err;
   $irc->join_channel("channel with space", sub { $err = $_[1]; Mojo::IOLoop->stop });
+  Mojo::IOLoop->start;
   is $err, 'Cannot join channel with spaces.', 'channel name with whitespace';
 }
+
+$irc->connect(sub { Mojo::IOLoop->stop });
+Mojo::IOLoop->start;
 
 $t->run(
   [qr{USER} => ['main', 'join-convos.irc']],

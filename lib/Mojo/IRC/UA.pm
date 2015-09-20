@@ -101,8 +101,16 @@ sub channel_topic {
   my ($self, $channel, $topic) = @_;
   my $res = length($topic // '') ? {} : undef;
 
-  return $self->tap($cb, "Cannot get/set topic without channel name.", "") unless $channel;    # err_needmoreparams
-  return $self->tap($cb, "Cannot get/set topic on channel with spaces.") if $channel =~ /\s/;
+  if (!$channel) {
+    Mojo::IOLoop->next_tick(sub { $self->$cb('Cannot get/set topic without channel name.', $topic ? () : ('')) });
+    return $self;
+  }
+  if ($channel =~ /\s/) {
+    Mojo::IOLoop->next_tick(
+      sub { $self->$cb('Cannot get/set topic on channel with spaces in name.', $topic ? () : ('')) });
+    return $self;
+  }
+
   return $self->_write_and_wait(
     $res ? Parse::IRC::parse_irc("TOPIC $channel :$topic") : Parse::IRC::parse_irc("TOPIC $channel"),
     {
@@ -154,7 +162,11 @@ sub channel_users {
   my ($self, $channel, $cb) = @_;
   my $users = {};
 
-  return $self->tap($cb, "Cannot get users without channel name.", "") unless $channel;    # err_needmoreparams
+  if (!$channel) {
+    Mojo::IOLoop->next_tick(sub { $self->$cb('Cannot get users without channel name.', {}) });
+    return $self;
+  }
+
   return $self->_write_and_wait(
     Parse::IRC::parse_irc("NAMES $channel"),
     {
@@ -196,37 +208,45 @@ fixed - Just don't know how yet.
 =cut
 
 sub join_channel {
-  my ($self, $name, $cb) = @_;
+  my ($self, $channel, $cb) = @_;
   my $info = {topic => '', topic_by => '', users => {}};
 
   # err_needmoreparams and will not allow special "JOIN 0"
-  return $self->tap($cb, "Cannot join without channel name.") unless $name;
-  return $self->tap($cb, "Cannot join channel with spaces.") if $name =~ /\s/;
+
+  if (!$channel) {
+    Mojo::IOLoop->next_tick(sub { $self->$cb('Cannot join without channel name.') });
+    return $self;
+  }
+  if ($channel =~ /\s/) {
+    Mojo::IOLoop->next_tick(sub { $self->$cb('Cannot join channel with spaces.') });
+    return $self;
+  }
+
   return $self->_write_and_wait(
-    Parse::IRC::parse_irc("JOIN $name"),
+    Parse::IRC::parse_irc("JOIN $channel"),
     {
-      err_badchanmask     => {1 => $name},
-      err_badchannelkey   => {1 => $name},
-      err_bannedfromchan  => {1 => $name},    # :hybrid8.debian.local 474 superman #convos :Cannot join channel (+b)
-      err_channelisfull   => {1 => $name},
-      err_inviteonlychan  => {1 => $name},
-      err_nosuchchannel   => {1 => $name},    # :hybrid8.debian.local 403 nick #convos :No such channel
-      err_toomanychannels => {1 => $name},
-      err_toomanytargets  => {1 => $name},
-      err_unavailresource => {1 => $name},
-      irc_479             => {1 => $name},    # Illegal channel name
-      irc_rpl_endofnames  => {1 => $name},    # :hybrid8.debian.local 366 superman #convos :End of /NAMES list.
+      err_badchanmask     => {1 => $channel},
+      err_badchannelkey   => {1 => $channel},
+      err_bannedfromchan  => {1 => $channel},    # :hybrid8.debian.local 474 superman #convos :Cannot join channel (+b)
+      err_channelisfull   => {1 => $channel},
+      err_inviteonlychan  => {1 => $channel},
+      err_nosuchchannel   => {1 => $channel},    # :hybrid8.debian.local 403 nick #convos :No such channel
+      err_toomanychannels => {1 => $channel},
+      err_toomanytargets  => {1 => $channel},
+      err_unavailresource => {1 => $channel},
+      irc_479             => {1 => $channel},    # Illegal channel name
+      irc_rpl_endofnames  => {1 => $channel},    # :hybrid8.debian.local 366 superman #convos :End of /NAMES list.
       irc_rpl_namreply    => sub {
         my ($self, $msg) = @_;
-        $self->_parse_namreply($msg, $info->{users}) if $msg->{params}[2] eq $name;
+        $self->_parse_namreply($msg, $info->{users}) if $msg->{params}[2] eq $channel;
       },
       irc_rpl_topic => sub {
         my ($self, $msg) = @_;
-        $info->{topic} = $msg->{params}[2] if $msg->{params}[1] eq $name;
+        $info->{topic} = $msg->{params}[2] if $msg->{params}[1] eq $channel;
       },
       irc_rpl_topicwhotime => sub {
         my ($self, $msg) = @_;
-        $info->{topic_by} = $msg->{params}[2] if $msg->{params}[1] eq $name;
+        $info->{topic_by} = $msg->{params}[2] if $msg->{params}[1] eq $channel;
       },
     },
     sub {
@@ -310,7 +330,11 @@ sub whois {
   my ($self, $target, $cb) = @_;
   my $info = {channels => {}, name => '', nick => $target, server => '', user => ''};
 
-  return $self->tap($cb, "Cannot retrieve whois information without target.", {}) unless $target;  # err_nonicknamegiven
+  unless ($target) {
+    Mojo::IOLoop->next_tick(sub { $self->$cb('Cannot retrieve whois information without target.', {}) });
+    return $self;
+  }
+
   return $self->_write_and_wait(
     Parse::IRC::parse_irc("WHOIS $target"),
     {

@@ -10,6 +10,7 @@ Mojo::IOLoop->start;
 {
   my $err;
   $irc->whois("", sub { $err = $_[1]; Mojo::IOLoop->stop });
+  Mojo::IOLoop->start;
   is $err, 'Cannot retrieve whois information without target.', 'target missing';
 }
 

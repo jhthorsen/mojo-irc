@@ -10,6 +10,7 @@ Mojo::IOLoop->start;
 {
   my $err;
   $irc->channel_users("", sub { $err = $_[1]; Mojo::IOLoop->stop });
+  Mojo::IOLoop->start;
   is $err, 'Cannot get users without channel name.', 'channel name missing';
 }
 
