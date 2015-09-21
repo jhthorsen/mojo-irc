@@ -1,6 +1,6 @@
 Revision history for perl distribution Mojo-IRC
 
-0.27 Not Released
+0.27 2015-09-21T11:22:24+0200
  - Fix calling callbacks async
  - Remove support for MOJO_IRC_OFFLINE=1
 

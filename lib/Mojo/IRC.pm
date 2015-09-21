@@ -6,7 +6,7 @@ Mojo::IRC - IRC Client for the Mojo IOLoop
 
 =head1 VERSION
 
-0.26
+0.27
 
 =head1 SYNOPSIS
 
@@ -116,7 +116,7 @@ use constant DEBUG => $ENV{MOJO_IRC_DEBUG} ? 1 : 0;
 use constant DEFAULT_CERT => $ENV{MOJO_IRC_CERT_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.crt';
 use constant DEFAULT_KEY  => $ENV{MOJO_IRC_KEY_FILE}  || catfile dirname(__FILE__), 'mojo-irc-client.key';
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 my %CTCP_QUOTE = ("\012" => 'n', "\015" => 'r', "\0" => '0', "\cP" => "\cP");
 
