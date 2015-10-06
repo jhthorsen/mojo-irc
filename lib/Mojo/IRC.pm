@@ -39,7 +39,7 @@ Mojo::IRC - IRC Client for the Mojo IOLoop
 L<Mojo::IRC> is a non-blocking IRC client using L<Mojo::IOLoop> from the
 wonderful L<Mojolicious> framework.
 
-If features IPv6 and TLS, with additional optional modules:
+It features IPv6 and TLS, with additional optional modules:
 L<IO::Socket::IP> and L<IO::Socket::SSL>.
 
 By default this module will only emit standard IRC events, but by
@@ -55,7 +55,7 @@ Example:
 It will also set up some default events: L</ctcp_ping>, L</ctcp_time>,
 and L</ctcp_version>.
 
-This class inherit from L<Mojo::EventEmitter>.
+This class inherits from L<Mojo::EventEmitter>.
 
 =head1 TESTING
 
@@ -69,7 +69,7 @@ L<Test::Mojo::IRC>.
 
 =head2 close
 
-Emitted once the connection to the server close.
+Emitted once the connection to the server closes.
 
 =head2 error
 
@@ -77,30 +77,30 @@ Emitted once the stream emits an error.
 
 =head2 err_event_name
 
-Events that start with "err_" is emitted when there is an IRC response that
-indicate an error. See L<Mojo::IRC::Events> for example events.
+Events that start with "err_" are emitted when there is an IRC response that
+indicates an error. See L<Mojo::IRC::Events> for sample events.
 
 =head2 ctcp_event_name
 
-Events that start with "ctcp_" is emitted if the L</parser> can understand
-CTCP messages, and there is an CTCP response.
+Events that start with "ctcp_" are emitted if the L</parser> can understand
+CTCP messages, and there is a CTCP response.
 
   $self->parser(Parse::IRC->new(ctcp => 1);
 
-See L<Mojo::IRC::Events> for example events.
+See L<Mojo::IRC::Events> for sample events.
 
 =head2 irc_error
 
-This event is used to emit IRC errors. It is also possible for finer
-granularity to listen for events such as C<err_nicknameinuse>.
+This event is used to emit IRC errors. For finer granularity, it is also
+possible to listen for events such as C<err_nicknameinuse>.
 
 NOTE: L</irc_error> events are emitted even if you listen to C<err_> events,
 but they are always emitted I<after> the C<err_> event.
 
 =head2 irc_event_name
 
-Events that start with "irc_" is emit when there is a normal IRC response.
-See L<Mojo::IRC::Events> for example events.
+Events that start with "irc_" are emitted when there is a normal IRC response.
+See L<Mojo::IRC::Events> for sample events.
 
 =cut
 
@@ -158,15 +158,15 @@ server that we are connected to.
 
 =head2 server
 
-Server name and optionally a port to connect to. Changing this while connected
-to the IRC server will issue a reconnect.
+Server name and, optionally, a port to connect to. Changing this while
+connected to the IRC server will issue a reconnect.
 
 =head2 tls
 
   $self->tls(undef) # disable (default)
   $self->tls({}) # enable
 
-Default is "undef" which disable TLS. Setting this to an empty hash will
+Default is "undef" which disables TLS. Setting this to an empty hash will
 enable TLS and this module will load in default certs. It is also possible
 to set custom cert/key:
 
@@ -215,9 +215,9 @@ sub server {
 
   $self = $self->connect(\&callback);
 
-Will login to the IRC L</server> and call C<&callback> once connected. The
-C<&callback> will be called once connected or if it fail to connect. The
-second argument will be an error message or empty string on success.
+Will log in to the IRC L</server> and call C<&callback>. The
+C<&callback> will be called once connected or if connect fails. The second
+argument will be an error message or empty string on success.
 
 =cut
 
