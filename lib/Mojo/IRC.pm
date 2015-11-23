@@ -131,6 +131,13 @@ my @DEFAULT_EVENTS = qw(
 
 Holds an instance of L<Mojo::IOLoop>.
 
+=head2 local_address
+
+  $str = $self->local_address;
+  $self = $self->local_address("10.20.30.40");
+
+Local address to bind to. See L<Mojo::IOLoop::Client/local_address>.
+
 =head2 name
 
 The name of this IRC client. Defaults to "Mojo IRC".
@@ -184,13 +191,14 @@ IRC username. Defaults to current logged in user or falls back to "anonymous".
 =cut
 
 has ioloop => sub { Mojo::IOLoop->singleton };
-has name   => 'Mojo IRC';
-has nick   => sub { shift->_build_nick };
-has parser => sub { Parse::IRC->new; };
-has pass   => '';
-has real_host => '';
-has tls       => undef;
-has user      => sub { $ENV{USER} || getlogin || getpwuid($<) || 'anonymous' };
+has local_address => '';
+has name          => 'Mojo IRC';
+has nick          => sub { shift->_build_nick };
+has parser        => sub { Parse::IRC->new; };
+has pass          => '';
+has real_host     => '';
+has tls           => undef;
+has user          => sub { $ENV{USER} || getlogin || getpwuid($<) || 'anonymous' };
 
 sub server {
   my ($self, $server) = @_;
@@ -224,18 +232,25 @@ argument will be an error message or empty string on success.
 sub connect {
   my ($self, $cb) = @_;
   my ($host, $port) = split /:/, $self->server;
-  my @tls;
+  my @extra;
 
+  if (!$host) {
+    Mojo::IOLoop->next_tick(sub { $self->$cb('server() is not set.') });
+    return $self;
+  }
   if ($self->{stream_id}) {
     Mojo::IOLoop->next_tick(sub { $self->$cb('') });
     return $self;
   }
 
+  if ($self->local_address) {
+    push @extra, local_address => $self->local_address;
+  }
   if (my $tls = $self->tls) {
-    push @tls, tls      => 1;
-    push @tls, tls_ca   => $tls->{ca} if $tls->{ca};       # not sure why this should be supported, but adding it anyway
-    push @tls, tls_cert => $tls->{cert} || DEFAULT_CERT;
-    push @tls, tls_key  => $tls->{key} || DEFAULT_KEY;
+    push @extra, tls      => 1;
+    push @extra, tls_ca   => $tls->{ca} if $tls->{ca};     # not sure why this should be supported, but adding it anyway
+    push @extra, tls_cert => $tls->{cert} || DEFAULT_CERT;
+    push @extra, tls_key  => $tls->{key} || DEFAULT_KEY;
   }
 
   $port ||= 6667;
@@ -247,7 +262,7 @@ sub connect {
   $self->{stream_id} = $self->ioloop->client(
     address => $host,
     port    => $port,
-    @tls,
+    @extra,
     sub {
       my ($loop, $err, $stream) = @_;
 
