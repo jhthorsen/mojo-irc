@@ -1,6 +1,7 @@
 Revision history for perl distribution Mojo-IRC
 
 0.28 Not Released
+ - Add Mojo::IRC::UA->part_channel() method
  - Add "local_address" attribute
 
 0.27 2015-09-21T11:22:24+0200

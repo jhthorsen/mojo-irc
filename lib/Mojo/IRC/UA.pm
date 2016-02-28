@@ -308,6 +308,43 @@ sub nick {
   return $self;
 }
 
+=head2 part_channel
+
+  $self = $self->part_channel($channel => sub { my ($self, $err) = @_; });
+
+Used to part/leave a channel.
+
+=cut
+
+sub part_channel {
+  my ($self, $channel, $cb) = @_;
+
+  # err_needmoreparams
+  if (!$channel) {
+    Mojo::IOLoop->next_tick(sub { $self->$cb('Cannot part without channel name.') });
+    return $self;
+  }
+  if ($channel =~ /\s/) {
+    Mojo::IOLoop->next_tick(sub { $self->$cb('Cannot part channel with spaces.') });
+    return $self;
+  }
+
+  return $self->_write_and_wait(
+    Parse::IRC::parse_irc("PART $channel"),
+    {
+      err_nosuchchannel => {1 => $channel},    # :hybrid8.debian.local 403 nick #convos :No such channel
+      err_notonchannel  => {1 => $channel},
+      irc_479           => {1 => $channel},    # Illegal channel name
+      irc_part          => {0 => $channel},
+    },
+    sub {
+      my ($self, $event, $err, $msg) = @_;
+      $self->$cb($event =~ /^(?:err_|irc_479)/ ? $err || $msg->{params}[2] || $event : '');
+    }
+  );
+
+}
+
 =head2 whois
 
   $self = $self->whois($target, sub { my ($self, $err, $info) = @_; });
