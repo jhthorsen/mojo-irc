@@ -22,5 +22,5 @@ WriteMakefile(
     'Parse::IRC'    => '1.20',
     'Unicode::UTF8' => '0.59'
   },
-  test => {TESTS => 't/*.t'},
+  test => {TESTS => (-e 'META.yml' ? 't/*.t' : 't/*.t xt/*.t')},
 );
