@@ -3,8 +3,7 @@ use Data::Dumper;
 use Parse::IRC;
 use Test::More;
 
-plan skip_all => "This is a real test"  if $ENV{HARNESS_IS_ACTIVE};
-plan skip_all => "Usage: echo ... | $0" if -t STDIN;
+plan skip_all => 'This is not a real test' if $ENV{HARNESS_ACTIVE} or $ENV{HARNESS_VERSION};
 
 my $msg    = readline STDIN;
 my $struct = Parse::IRC::parse_irc($msg);
