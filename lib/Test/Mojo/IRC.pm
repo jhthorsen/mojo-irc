@@ -1,77 +1,10 @@
 package Test::Mojo::IRC;
-
-=head1 NAME
-
-Test::Mojo::IRC - Module for testing Mojo::IRC
-
-=head1 SYNOPSIS
-
-  use Test::Mojo::IRC -basic;
-
-  my $t      = Test::Mojo::IRC->new;
-  my $server = $t->start_server;
-  my $irc    = Mojo::IRC->new(server => $server);
-
-  # simulate server/client communication
-  $t->run(
-    [
-      # Send "welcome.irc" from the DATA section when client sends "NICK"
-      qr{\bNICK\b} => [ "main", "motd.irc" ],
-    ],
-    sub {
-      my $err;
-      my $motd = 0;
-      $t->on($irc, irc_rpl_motd => sub { $motd++ });
-      $t->on($irc, irc_rpl_endofmotd => sub { Mojo::IOLoop->stop; }); # need to manually stop the IOLoop
-      $irc->connect(sub { $err = $_[1]; });
-      Mojo::IOLoop->start; # need to manually start the IOLoop
-      is $err, "", "connected";
-      is $motd, 3, "message of the day";
-    },
-  );
-
-  done_testing;
-
-  __DATA__
-  @@ motd.irc
-  :spectral.shadowcat.co.uk 375 test123 :- spectral.shadowcat.co.uk Message of the Day -
-  :spectral.shadowcat.co.uk 372 test123 :- We scan all connecting clients for open proxies and other
-  :spectral.shadowcat.co.uk 372 test123 :- exploitable nasties. If you don't wish to be scanned,
-  :spectral.shadowcat.co.uk 372 test123 :- don't connect again, and sorry for scanning you this time.
-  :spectral.shadowcat.co.uk 376 test123 :End of /MOTD command.
-
-=head1 DESCRIPTION
-
-L<Test::Mojo::IRC> is a module for making it easier to test L<Mojo::IRC>
-applications.
-
-=head1 ENVIRONMENT VARIABLES
-
-=head2 TEST_MOJO_IRC_SERVER
-
-C<TEST_MOJO_IRC_SERVER> can be set to point to a live server. If the variable
-is set, L</start_server> will simply return L<TEST_MOJO_IRC_SERVER> instead
-of setting up a server.
-
-=cut
-
 use Mojo::Base -base;
 use Mojo::IOLoop::Server;
 use Mojo::IRC;
 use Mojo::Util;
 
 $ENV{TEST_MOJO_IRC_SERVER_TIMEOUT} ||= $ENV{TEST_MOJO_IRC_SERVER} ? 10 : 4;
-
-=head1 ATTRIBUTES
-
-=head2 welcome_message
-
-  $str = $self->welcome_message;
-  $self = $self->welcome_message($str);
-
-Holds a message which will be sent to the client on connect.
-
-=cut
 
 has welcome_message => <<'HERE';
 :hybrid8.local NOTICE AUTH :*** Looking up your hostname...
@@ -80,61 +13,11 @@ has welcome_message => <<'HERE';
 :hybrid8.local NOTICE AUTH :*** No Ident response
 HERE
 
-=head1 METHODS
-
-=head2 on
-
-  $self->on($irc, $event, $cb);
-
-Will attach events to the L<$irc|Mojo::IRC> object which is removed
-after L</run> has completed. See L</SYNOPSIS> for example code.
-
-=cut
-
 sub on {
   my ($self, $irc, $event, $cb) = @_;
   push @{$self->{subscriptions}}, $irc, $event, $irc->on($event => $cb);
   $self;
 }
-
-=head2 run
-
-  $self->run($reply_on, $cb);
-
-Used to simulate communication between IRC server and client. The way this
-works is that the C<$cb> will initiate L<connect|Mojo::IRC/connect> or
-L<write|Mojo::IRC/write> to the server and the server will then respond
-with the data from either L</welcome_message> or C<$reply_on> on these
-events.
-
-C<$reply_on> is an array-ref of regex/buffer pairs. Each time a message
-from the client match the first regex in the C<$reply_on> array the
-buffer will be sent back to the client and the regex/buffer will be removed.
-This means that the order of the pairs are important. The buffer can be...
-
-=over 4
-
-=item * Scalar
-
-Plain text.
-
-=item * Scalar ref
-
-Path to file on disk.
-
-=item * Array ref
-
-The module name and file passed on to L<Mojo::Loader/data_section>.
-
-=back
-
-Note that starting and stopping the L<IOLoop|Mojo::IOLoop> is up to you, but
-there is also a master timeout which will stop the IOLoop if running for too
-long.
-
-See L</SYNOPSIS> for example.
-
-=cut
 
 sub run {
   my ($self, $reply_on, $cb) = @_;
@@ -155,14 +38,6 @@ sub run {
 
   $self;
 }
-
-=head2 start_server
-
-  $server = $self->start_server;
-
-Will start a test server and return the "host:port" which it listens to.
-
-=cut
 
 sub start_server {
   my $self = shift;
@@ -222,15 +97,6 @@ sub _concat_server_buf {
   $self->{server_buf} .= $buf;
 }
 
-=head2 import
-
-  use Test::Mojo::IRC -basic;
-
-Loading this module with "-basic" will import L<strict>, L<warnings>, L<utf8>,
-L<Test::More> and 5.10 features into the caller namespace.
-
-=cut
-
 sub import {
   my $class  = shift;
   my $arg    = shift // '';
@@ -242,6 +108,131 @@ sub import {
   eval "require Mojo::IRC::UA;1" or die $@ if $arg eq '-ua';
   eval "package $caller; use Test::More; 1" or die $@;
 }
+
+1;
+
+=encoding utf8
+
+=head1 NAME
+
+Test::Mojo::IRC - Module for testing Mojo::IRC
+
+=head1 SYNOPSIS
+
+  use Test::Mojo::IRC -basic;
+
+  my $t      = Test::Mojo::IRC->new;
+  my $server = $t->start_server;
+  my $irc    = Mojo::IRC->new(server => $server);
+
+  # simulate server/client communication
+  $t->run(
+    [
+      # Send "welcome.irc" from the DATA section when client sends "NICK"
+      qr{\bNICK\b} => [ "main", "motd.irc" ],
+    ],
+    sub {
+      my $err;
+      my $motd = 0;
+      $t->on($irc, irc_rpl_motd => sub { $motd++ });
+      $t->on($irc, irc_rpl_endofmotd => sub { Mojo::IOLoop->stop; }); # need to manually stop the IOLoop
+      $irc->connect(sub { $err = $_[1]; });
+      Mojo::IOLoop->start; # need to manually start the IOLoop
+      is $err, "", "connected";
+      is $motd, 3, "message of the day";
+    },
+  );
+
+  done_testing;
+
+  __DATA__
+  @@ motd.irc
+  :spectral.shadowcat.co.uk 375 test123 :- spectral.shadowcat.co.uk Message of the Day -
+  :spectral.shadowcat.co.uk 372 test123 :- We scan all connecting clients for open proxies and other
+  :spectral.shadowcat.co.uk 372 test123 :- exploitable nasties. If you don't wish to be scanned,
+  :spectral.shadowcat.co.uk 372 test123 :- don't connect again, and sorry for scanning you this time.
+  :spectral.shadowcat.co.uk 376 test123 :End of /MOTD command.
+
+=head1 DESCRIPTION
+
+L<Test::Mojo::IRC> is a module for making it easier to test L<Mojo::IRC>
+applications.
+
+=head1 ENVIRONMENT VARIABLES
+
+=head2 TEST_MOJO_IRC_SERVER
+
+C<TEST_MOJO_IRC_SERVER> can be set to point to a live server. If the variable
+is set, L</start_server> will simply return L<TEST_MOJO_IRC_SERVER> instead
+of setting up a server.
+
+=head1 ATTRIBUTES
+
+=head2 welcome_message
+
+  $str = $self->welcome_message;
+  $self = $self->welcome_message($str);
+
+Holds a message which will be sent to the client on connect.
+
+=head1 METHODS
+
+=head2 on
+
+  $self->on($irc, $event, $cb);
+
+Will attach events to the L<$irc|Mojo::IRC> object which is removed
+after L</run> has completed. See L</SYNOPSIS> for example code.
+
+=head2 run
+
+  $self->run($reply_on, $cb);
+
+Used to simulate communication between IRC server and client. The way this
+works is that the C<$cb> will initiate L<connect|Mojo::IRC/connect> or
+L<write|Mojo::IRC/write> to the server and the server will then respond
+with the data from either L</welcome_message> or C<$reply_on> on these
+events.
+
+C<$reply_on> is an array-ref of regex/buffer pairs. Each time a message
+from the client match the first regex in the C<$reply_on> array the
+buffer will be sent back to the client and the regex/buffer will be removed.
+This means that the order of the pairs are important. The buffer can be...
+
+=over 4
+
+=item * Scalar
+
+Plain text.
+
+=item * Scalar ref
+
+Path to file on disk.
+
+=item * Array ref
+
+The module name and file passed on to L<Mojo::Loader/data_section>.
+
+=back
+
+Note that starting and stopping the L<IOLoop|Mojo::IOLoop> is up to you, but
+there is also a master timeout which will stop the IOLoop if running for too
+long.
+
+See L</SYNOPSIS> for example.
+
+=head2 start_server
+
+  $server = $self->start_server;
+
+Will start a test server and return the "host:port" which it listens to.
+
+=head2 import
+
+  use Test::Mojo::IRC -basic;
+
+Loading this module with "-basic" will import L<strict>, L<warnings>, L<utf8>,
+L<Test::More> and 5.10 features into the caller namespace.
 
 =head1 COPYRIGHT AND LICENSE
 
@@ -255,5 +246,3 @@ the terms of the Artistic License version 2.0.
 Jan Henning Thorsen - C<jhthorsen@cpan.org>
 
 =cut
-
-1;

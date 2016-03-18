@@ -1,4 +1,304 @@
 package Mojo::IRC;
+use Mojo::Base 'Mojo::EventEmitter';
+use Mojo::IOLoop;
+use File::Basename 'dirname';
+use File::Spec::Functions 'catfile';
+use IRC::Utils   ();
+use Parse::IRC   ();
+use Scalar::Util ();
+use Unicode::UTF8;
+use constant DEBUG => $ENV{MOJO_IRC_DEBUG} ? 1 : 0;
+use constant DEFAULT_CERT => $ENV{MOJO_IRC_CERT_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.crt';
+use constant DEFAULT_KEY  => $ENV{MOJO_IRC_KEY_FILE}  || catfile dirname(__FILE__), 'mojo-irc-client.key';
+
+our $VERSION = '0.29';
+
+my %CTCP_QUOTE = ("\012" => 'n', "\015" => 'r', "\0" => '0', "\cP" => "\cP");
+
+my @DEFAULT_EVENTS = qw(
+  irc_ping irc_nick irc_notice irc_rpl_welcome err_nicknameinuse
+  ctcp_ping ctcp_time ctcp_version
+);
+
+has ioloop => sub { Mojo::IOLoop->singleton };
+has local_address => '';
+has name          => 'Mojo IRC';
+has nick          => sub { shift->_build_nick };
+has parser        => sub { Parse::IRC->new; };
+has pass          => '';
+has real_host     => '';
+has tls           => undef;
+has user          => sub { $ENV{USER} || getlogin || getpwuid($<) || 'anonymous' };
+
+sub server {
+  my ($self, $server) = @_;
+  my $old = $self->{server} || '';
+
+  Scalar::Util::weaken($self);
+  return $old unless defined $server;
+  return $self if $old and $old eq $server;
+  $self->{server} = $server;
+  return $self unless $self->{stream_id};
+  $self->disconnect(
+    sub {
+      $self->connect(sub { });
+    }
+  );
+  $self;
+}
+
+sub connect {
+  my ($self, $cb) = @_;
+  my ($host, $port) = split /:/, $self->server;
+  my @extra;
+
+  if (!$host) {
+    Mojo::IOLoop->next_tick(sub { $self->$cb('server() is not set.') });
+    return $self;
+  }
+  if ($self->{stream_id}) {
+    Mojo::IOLoop->next_tick(sub { $self->$cb('') });
+    return $self;
+  }
+
+  if ($self->local_address) {
+    push @extra, local_address => $self->local_address;
+  }
+  if (my $tls = $self->tls) {
+    push @extra, tls      => 1;
+    push @extra, tls_ca   => $tls->{ca} if $tls->{ca};     # not sure why this should be supported, but adding it anyway
+    push @extra, tls_cert => $tls->{cert} || DEFAULT_CERT;
+    push @extra, tls_key  => $tls->{key} || DEFAULT_KEY;
+  }
+
+  $port ||= 6667;
+  $self->{buffer} = '';
+  $self->{debug_key} ||= "$host:$port";
+  $self->register_default_event_handlers;
+
+  Scalar::Util::weaken($self);
+  $self->{stream_id} = $self->ioloop->client(
+    address => $host,
+    port    => $port,
+    @extra,
+    sub {
+      my ($loop, $err, $stream) = @_;
+
+      if ($err) {
+        delete $self->{stream_id};
+        return $self->$cb($err);
+      }
+
+      $stream->timeout(0);
+      $stream->on(
+        close => sub {
+          $self or return;
+          warn "[$self->{debug_key}] : close\n" if DEBUG;
+          delete $self->{stream};
+          delete $self->{stream_id};
+          $self->emit('close');
+        }
+      );
+      $stream->on(
+        error => sub {
+          $self or return;
+          $self->ioloop or return;
+          $self->ioloop->remove(delete $self->{stream_id});
+          $self->emit(error => $_[1]);
+        }
+      );
+      $stream->on(read => sub { $self->_read($_[1]) });
+
+      $self->{stream} = $stream;
+      $self->ioloop->delay(
+        sub {
+          my $delay = shift;
+          $self->write(PASS => $self->pass, $delay->begin) if length $self->pass;
+          $self->write(NICK => $self->nick, $delay->begin);
+          $self->write(USER => $self->user, 8, '*', ':' . $self->name, $delay->begin);
+        },
+        sub {
+          $self->$cb('');
+        }
+      );
+    }
+  );
+
+  return $self;
+}
+
+sub ctcp {
+  my $self = shift;
+  local $_ = join ' ', @_;
+  s/([\012\015\0\cP])/\cP$CTCP_QUOTE{$1}/g;
+  s/\001/\\a/g;
+  ":\001${_}\001";
+}
+
+sub disconnect {
+  my ($self, $cb) = @_;
+
+  if (my $tid = delete $self->{ping_tid}) {
+    $self->ioloop->remove($tid);
+  }
+
+  if ($self->{stream}) {
+    Scalar::Util::weaken($self);
+    $self->{stream}->write(
+      "QUIT\r\n",
+      sub {
+        $self->{stream}->close;
+        $self->$cb if $cb;
+      }
+    );
+  }
+  elsif ($cb) {
+    Mojo::IOLoop->next_tick(sub { $self->$cb });
+  }
+
+  $self;
+}
+
+sub register_default_event_handlers {
+  my $self = shift;
+
+  Scalar::Util::weaken($self);
+  for my $event (@DEFAULT_EVENTS) {
+    next if $self->has_subscribers($event);
+    $self->on($event => $self->can($event));
+  }
+}
+
+sub write {
+  no warnings 'utf8';
+  my $cb   = ref $_[-1] eq 'CODE' ? pop : sub { };
+  my $self = shift;
+  my $buf  = Unicode::UTF8::encode_utf8(join(' ', @_), sub { $_[0] });
+
+  Scalar::Util::weaken($self);
+  if (ref $self->{stream}) {
+    warn "[$self->{debug_key}] <<< $buf\n" if DEBUG;
+    $self->{stream}->write("$buf\r\n", sub { $self->$cb(''); });
+  }
+  else {
+    Mojo::IOLoop->next_tick(sub { $self->$cb('Not connected.') });
+  }
+
+  $self;
+}
+
+sub ctcp_ping {
+  my ($self, $message) = @_;
+  my $ts   = $message->{params}[1];
+  my $nick = IRC::Utils::parse_user($message->{prefix});
+
+  return $self unless $ts;
+  return $self->write('NOTICE', $nick, $self->ctcp(PING => $ts));
+}
+
+sub ctcp_time {
+  my ($self, $message) = @_;
+  my $nick = IRC::Utils::parse_user($message->{prefix});
+
+  $self->write(NOTICE => $nick, $self->ctcp(TIME => scalar localtime));
+}
+
+sub ctcp_version {
+  my ($self, $message) = @_;
+  my $nick = IRC::Utils::parse_user($message->{prefix});
+
+  $self->write(NOTICE => $nick, $self->ctcp(VERSION => 'Mojo-IRC', $VERSION));
+}
+
+sub irc_nick {
+  my ($self, $message) = @_;
+  my $old_nick = ($message->{prefix} =~ /^[~&@%+]?(.*?)!/)[0] || '';
+
+  if (lc $old_nick eq lc $self->nick) {
+    $self->nick($message->{params}[0]);
+  }
+}
+
+sub irc_notice {
+  my ($self, $message) = @_;
+
+  # NOTICE AUTH :*** Ident broken or disabled, to continue to connect you must type /QUOTE PASS 21105
+  if ($message->{params}[0] =~ m!Ident broken.*QUOTE PASS (\S+)!) {
+    $self->write(QUOTE => PASS => $1);
+  }
+}
+
+sub irc_ping {
+  my ($self, $message) = @_;
+  $self->write(PONG => $message->{params}[0]);
+}
+
+sub irc_rpl_welcome {
+  my ($self, $message) = @_;
+  $self->nick($message->{params}[0]);
+
+  Scalar::Util::weaken($self);
+  $self->real_host($message->{prefix});
+  $self->{ping_tid} ||= $self->ioloop->recurring(
+    $self->{ping_pong_interval} || 60,    # $self->{ping_pong_interval} is EXPERIMENTAL
+    sub {
+      $self->write(PING => $self->real_host);
+    }
+  );
+}
+
+sub err_nicknameinuse {
+  my ($self, $message) = @_;
+  my $nick = $message->{params}[1];
+
+  $self->nick($nick . '_');
+  $self->write(NICK => $self->nick, sub { });
+}
+
+sub DESTROY {
+  my $self   = shift;
+  my $ioloop = $self->ioloop or return;
+  my $tid    = $self->{ping_tid};
+  my $sid    = $self->{stream_id};
+
+  $ioloop->remove($sid) if $sid;
+  $ioloop->remove($tid) if $tid;
+}
+
+sub _build_nick {
+  my $nick = shift->user;
+  $nick =~ s![^a-z_]!_!g;
+  $nick;
+}
+
+# Can be used in unittest to mock input data:
+# $irc->_read($bytes);
+sub _read {
+  my $self = shift;
+
+  no warnings 'utf8';
+  $self->{buffer} .= Unicode::UTF8::decode_utf8($_[0], sub { $_[0] });
+
+CHUNK:
+  while ($self->{buffer} =~ s/^([^\015\012]+)[\015\012]//m) {
+    warn "[$self->{debug_key}] >>> $1\n" if DEBUG;
+    my $message = $self->parser->parse($1);
+    my $command = $message->{command} or next CHUNK;
+
+    if ($command =~ /^\d+$/) {
+      $self->emit("irc_$command" => $message);
+      $command = IRC::Utils::numeric_to_name($command) or next CHUNK;
+    }
+
+    $command = "irc_$command" if $command !~ /^(CTCP|ERR)_/;
+    $self->emit(lc($command) => $message);
+    $self->emit(irc_error => $message) if $command =~ /^ERR_/;
+  }
+}
+
+1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -102,29 +402,6 @@ but they are always emitted I<after> the C<err_> event.
 Events that start with "irc_" are emitted when there is a normal IRC response.
 See L<Mojo::IRC::Events> for sample events.
 
-=cut
-
-use Mojo::Base 'Mojo::EventEmitter';
-use Mojo::IOLoop;
-use File::Basename 'dirname';
-use File::Spec::Functions 'catfile';
-use IRC::Utils   ();
-use Parse::IRC   ();
-use Scalar::Util ();
-use Unicode::UTF8;
-use constant DEBUG => $ENV{MOJO_IRC_DEBUG} ? 1 : 0;
-use constant DEFAULT_CERT => $ENV{MOJO_IRC_CERT_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.crt';
-use constant DEFAULT_KEY  => $ENV{MOJO_IRC_KEY_FILE}  || catfile dirname(__FILE__), 'mojo-irc-client.key';
-
-our $VERSION = '0.29';
-
-my %CTCP_QUOTE = ("\012" => 'n', "\015" => 'r', "\0" => '0', "\cP" => "\cP");
-
-my @DEFAULT_EVENTS = qw(
-  irc_ping irc_nick irc_notice irc_rpl_welcome err_nicknameinuse
-  ctcp_ping ctcp_time ctcp_version
-);
-
 =head1 ATTRIBUTES
 
 =head2 ioloop
@@ -188,35 +465,6 @@ This can be generated using
 
 IRC username. Defaults to current logged in user or falls back to "anonymous".
 
-=cut
-
-has ioloop => sub { Mojo::IOLoop->singleton };
-has local_address => '';
-has name          => 'Mojo IRC';
-has nick          => sub { shift->_build_nick };
-has parser        => sub { Parse::IRC->new; };
-has pass          => '';
-has real_host     => '';
-has tls           => undef;
-has user          => sub { $ENV{USER} || getlogin || getpwuid($<) || 'anonymous' };
-
-sub server {
-  my ($self, $server) = @_;
-  my $old = $self->{server} || '';
-
-  Scalar::Util::weaken($self);
-  return $old unless defined $server;
-  return $self if $old and $old eq $server;
-  $self->{server} = $server;
-  return $self unless $self->{stream_id};
-  $self->disconnect(
-    sub {
-      $self->connect(sub { });
-    }
-  );
-  $self;
-}
-
 =head1 METHODS
 
 =head2 connect
@@ -226,88 +474,6 @@ sub server {
 Will log in to the IRC L</server> and call C<&callback>. The
 C<&callback> will be called once connected or if connect fails. The second
 argument will be an error message or empty string on success.
-
-=cut
-
-sub connect {
-  my ($self, $cb) = @_;
-  my ($host, $port) = split /:/, $self->server;
-  my @extra;
-
-  if (!$host) {
-    Mojo::IOLoop->next_tick(sub { $self->$cb('server() is not set.') });
-    return $self;
-  }
-  if ($self->{stream_id}) {
-    Mojo::IOLoop->next_tick(sub { $self->$cb('') });
-    return $self;
-  }
-
-  if ($self->local_address) {
-    push @extra, local_address => $self->local_address;
-  }
-  if (my $tls = $self->tls) {
-    push @extra, tls      => 1;
-    push @extra, tls_ca   => $tls->{ca} if $tls->{ca};     # not sure why this should be supported, but adding it anyway
-    push @extra, tls_cert => $tls->{cert} || DEFAULT_CERT;
-    push @extra, tls_key  => $tls->{key} || DEFAULT_KEY;
-  }
-
-  $port ||= 6667;
-  $self->{buffer} = '';
-  $self->{debug_key} ||= "$host:$port";
-  $self->register_default_event_handlers;
-
-  Scalar::Util::weaken($self);
-  $self->{stream_id} = $self->ioloop->client(
-    address => $host,
-    port    => $port,
-    @extra,
-    sub {
-      my ($loop, $err, $stream) = @_;
-
-      if ($err) {
-        delete $self->{stream_id};
-        return $self->$cb($err);
-      }
-
-      $stream->timeout(0);
-      $stream->on(
-        close => sub {
-          $self or return;
-          warn "[$self->{debug_key}] : close\n" if DEBUG;
-          delete $self->{stream};
-          delete $self->{stream_id};
-          $self->emit('close');
-        }
-      );
-      $stream->on(
-        error => sub {
-          $self or return;
-          $self->ioloop or return;
-          $self->ioloop->remove(delete $self->{stream_id});
-          $self->emit(error => $_[1]);
-        }
-      );
-      $stream->on(read => sub { $self->_read($_[1]) });
-
-      $self->{stream} = $stream;
-      $self->ioloop->delay(
-        sub {
-          my $delay = shift;
-          $self->write(PASS => $self->pass, $delay->begin) if length $self->pass;
-          $self->write(NICK => $self->nick, $delay->begin);
-          $self->write(USER => $self->user, 8, '*', ':' . $self->name, $delay->begin);
-        },
-        sub {
-          $self->$cb('');
-        }
-      );
-    }
-  );
-
-  return $self;
-}
 
 =head2 ctcp
 
@@ -321,47 +487,11 @@ The code above will write this message to IRC server:
 
   PRIVMSG nickname :\001TIME 1393006707\001
 
-=cut
-
-sub ctcp {
-  my $self = shift;
-  local $_ = join ' ', @_;
-  s/([\012\015\0\cP])/\cP$CTCP_QUOTE{$1}/g;
-  s/\001/\\a/g;
-  ":\001${_}\001";
-}
-
 =head2 disconnect
 
   $self->disconnect(\&callback);
 
 Will disconnect form the server and run the callback once it is done.
-
-=cut
-
-sub disconnect {
-  my ($self, $cb) = @_;
-
-  if (my $tid = delete $self->{ping_tid}) {
-    $self->ioloop->remove($tid);
-  }
-
-  if ($self->{stream}) {
-    Scalar::Util::weaken($self);
-    $self->{stream}->write(
-      "QUIT\r\n",
-      sub {
-        $self->{stream}->close;
-        $self->$cb if $cb;
-      }
-    );
-  }
-  elsif ($cb) {
-    Mojo::IOLoop->next_tick(sub { $self->$cb });
-  }
-
-  $self;
-}
 
 =head2 register_default_event_handlers
 
@@ -369,18 +499,6 @@ sub disconnect {
 
 This method sets up the default L</DEFAULT EVENT HANDLERS> unless someone has
 already subscribed to the event.
-
-=cut
-
-sub register_default_event_handlers {
-  my $self = shift;
-
-  Scalar::Util::weaken($self);
-  for my $event (@DEFAULT_EVENTS) {
-    next if $self->has_subscribers($event);
-    $self->on($event => $self->can($event));
-  }
-}
 
 =head2 write
 
@@ -391,26 +509,6 @@ with " " and "\r\n" will be appended. C<&callback> is called once the message is
 delivered over the stream. The second argument to the callback will be
 an error message: Empty string on success and a description on error.
 
-=cut
-
-sub write {
-  no warnings 'utf8';
-  my $cb   = ref $_[-1] eq 'CODE' ? pop : sub { };
-  my $self = shift;
-  my $buf  = Unicode::UTF8::encode_utf8(join(' ', @_), sub { $_[0] });
-
-  Scalar::Util::weaken($self);
-  if (ref $self->{stream}) {
-    warn "[$self->{debug_key}] <<< $buf\n" if DEBUG;
-    $self->{stream}->write("$buf\r\n", sub { $self->$cb(''); });
-  }
-  else {
-    Mojo::IOLoop->next_tick(sub { $self->$cb('Not connected.') });
-  }
-
-  $self;
-}
-
 =head1 DEFAULT EVENT HANDLERS
 
 =head2 ctcp_ping
@@ -418,17 +516,6 @@ sub write {
 Will respond to the sender with the difference in time.
 
   Ping reply from $sender: 0.53 second(s)
-
-=cut
-
-sub ctcp_ping {
-  my ($self, $message) = @_;
-  my $ts   = $message->{params}[1];
-  my $nick = IRC::Utils::parse_user($message->{prefix});
-
-  return $self unless $ts;
-  return $self->write('NOTICE', $nick, $self->ctcp(PING => $ts));
-}
 
 =head2 ctcp_time
 
@@ -438,15 +525,6 @@ Will respond to the sender with the current localtime. Example:
 
 NOTE! The localtime format may change.
 
-=cut
-
-sub ctcp_time {
-  my ($self, $message) = @_;
-  my $nick = IRC::Utils::parse_user($message->{prefix});
-
-  $self->write(NOTICE => $nick, $self->ctcp(TIME => scalar localtime));
-}
-
 =head2 ctcp_version
 
 Will respond to the sender with:
@@ -455,132 +533,27 @@ Will respond to the sender with:
 
 NOTE! Additional information may be added later on.
 
-=cut
-
-sub ctcp_version {
-  my ($self, $message) = @_;
-  my $nick = IRC::Utils::parse_user($message->{prefix});
-
-  $self->write(NOTICE => $nick, $self->ctcp(VERSION => 'Mojo-IRC', $VERSION));
-}
-
 =head2 irc_nick
 
 Used to update the L</nick> attribute when the nick has changed.
-
-=cut
-
-sub irc_nick {
-  my ($self, $message) = @_;
-  my $old_nick = ($message->{prefix} =~ /^[~&@%+]?(.*?)!/)[0] || '';
-
-  if (lc $old_nick eq lc $self->nick) {
-    $self->nick($message->{params}[0]);
-  }
-}
 
 =head2 irc_notice
 
 Responds to the server with "QUOTE PASS ..." if the notice contains "Ident
 broken...QUOTE PASS...".
 
-=cut
-
-sub irc_notice {
-  my ($self, $message) = @_;
-
-  # NOTICE AUTH :*** Ident broken or disabled, to continue to connect you must type /QUOTE PASS 21105
-  if ($message->{params}[0] =~ m!Ident broken.*QUOTE PASS (\S+)!) {
-    $self->write(QUOTE => PASS => $1);
-  }
-}
-
 =head2 irc_ping
 
 Responds to the server with "PONG ...".
-
-=cut
-
-sub irc_ping {
-  my ($self, $message) = @_;
-  $self->write(PONG => $message->{params}[0]);
-}
 
 =head2 irc_rpl_welcome
 
 Used to get the hostname of the server. Will also set up automatic PING
 requests to prevent timeout and update the L</nick> attribute.
 
-=cut
-
-sub irc_rpl_welcome {
-  my ($self, $message) = @_;
-  $self->nick($message->{params}[0]);
-
-  Scalar::Util::weaken($self);
-  $self->real_host($message->{prefix});
-  $self->{ping_tid} ||= $self->ioloop->recurring(
-    $self->{ping_pong_interval} || 60,    # $self->{ping_pong_interval} is EXPERIMENTAL
-    sub {
-      $self->write(PING => $self->real_host);
-    }
-  );
-}
-
 =head2 err_nicknameinuse
 
 This handler will add "_" to the failed nick before trying to register again.
-
-=cut
-
-sub err_nicknameinuse {
-  my ($self, $message) = @_;
-  my $nick = $message->{params}[1];
-
-  $self->nick($nick . '_');
-  $self->write(NICK => $self->nick, sub { });
-}
-
-sub DESTROY {
-  my $self   = shift;
-  my $ioloop = $self->ioloop or return;
-  my $tid    = $self->{ping_tid};
-  my $sid    = $self->{stream_id};
-
-  $ioloop->remove($sid) if $sid;
-  $ioloop->remove($tid) if $tid;
-}
-
-sub _build_nick {
-  my $nick = shift->user;
-  $nick =~ s![^a-z_]!_!g;
-  $nick;
-}
-
-# Can be used in unittest to mock input data:
-# $irc->_read($bytes);
-sub _read {
-  my $self = shift;
-
-  no warnings 'utf8';
-  $self->{buffer} .= Unicode::UTF8::decode_utf8($_[0], sub { $_[0] });
-
-CHUNK:
-  while ($self->{buffer} =~ s/^([^\015\012]+)[\015\012]//m) {
-    warn "[$self->{debug_key}] >>> $1\n" if DEBUG;
-    my $message = $self->parser->parse($1);
-    my $command = $message->{command} or next CHUNK;
-
-    if ($command =~ /^\d+$/) {
-      $self->emit("irc_$command" => $message);
-      $command = IRC::Utils::numeric_to_name($command) or next CHUNK;
-    }
-
-    $command = "irc_$command" if $command !~ /^(CTCP|ERR)_/;
-    $self->emit(lc($command) => $message);
-    $self->emit(irc_error => $message) if $command =~ /^ERR_/;
-  }
-}
 
 =head1 COPYRIGHT
 
@@ -594,5 +567,3 @@ Marcus Ramberg - C<mramberg@cpan.org>
 Jan Henning Thorsen - C<jhthorsen@cpan.org>
 
 =cut
-
-1;

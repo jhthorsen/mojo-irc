@@ -1,66 +1,8 @@
 package Mojo::IRC::UA;
-
-=head1 NAME
-
-Mojo::IRC::UA - IRC Client with sugar on top
-
-=head1 SYNOPSIS
-
-  use Mojo::IRC::UA;
-  my $irc = Mojo::IRC::UA->new;
-
-=head1 DESCRIPTION
-
-L<Mojo::IRC::UA> is a module which extends L<Mojo::IRC> with methods
-that can track changes in state on the IRC server.
-
-This module is EXPERIMENTAL and can change without warning.
-
-=cut
-
 use Mojo::Base 'Mojo::IRC';
 use List::Util 'all';
 
-=head1 ATTRIBUTES
-
-L<Mojo::IRC::UA> inherits all attributes from L<Mojo::IRC> and implements the
-following new ones.
-
-=head2 op_timeout
-
-  $int = $self->op_timeout;
-  $self = $self->op_timeout($int);
-
-Max number of seconds to wait for a response from the IRC server.
-
-=cut
-
 has op_timeout => 10;
-
-=head1 EVENTS
-
-L<Mojo::IRC::UA> inherits all events from L<Mojo::IRC> and implements the
-following new ones.
-
-=head1 METHODS
-
-L<Mojo::IRC::UA> inherits all methods from L<Mojo::IRC> and implements the
-following new ones.
-
-=head2 channels
-
-  $self = $self->channels(sub { my ($self, $err, $channels) = @_; });
-
-Will retrieve available channels on the IRC server. C<$channels> has this
-structure on success:
-
-  {
-    "#convos" => {n_users => 4, topic => "[+nt] some cool topic"},
-  }
-
-NOTE: This might take a long time, if the server has a lot of channels.
-
-=cut
 
 sub channels {
   my ($self, $cb) = @_;
@@ -86,15 +28,6 @@ sub channels {
     },
   );
 }
-
-=head2 channel_topic
-
-  $self = $self->channel_topic($channel, $topic, sub { my ($self, $err) = @_; });
-  $self = $self->channel_topic($channel, sub { my ($self, $err, $topic) = @_; });
-
-Used to get or set topic for a channel.
-
-=cut
 
 sub channel_topic {
   my $cb = pop;
@@ -143,21 +76,6 @@ sub channel_topic {
   );
 }
 
-=head2 channel_users
-
-  $self = $self->channel_users($channel, sub { my ($self, $err, $users) = @_; });
-
-This can retrieve the users in a channel. C<$users> contains this structure:
-
-  {
-    jhthorsen => {mode => "@"},
-    Superman  => {mode => ""},
-  }
-
-This method is EXPERIMENTAL and can change without warning.
-
-=cut
-
 sub channel_users {
   my ($self, $channel, $cb) = @_;
   my $users = {};
@@ -184,28 +102,6 @@ sub channel_users {
     }
   );
 }
-
-=head2 join_channel
-
-  $self = $self->join_channel($channel => sub { my ($self, $err, $info) = @_; });
-
-Used to join an IRC channel. C<$err> will be false (empty string) on a
-successful join. C<$info> can contain information about the joined channel:
-
-  {
-    topic    => "some cool topic",
-    topic_by => "jhthorsen",
-    users    => {
-      jhthorsen => {mode => "@"},
-      Superman  => {mode => ""},
-    },
-  }
-
-NOTE! This method will fail if the channel is already joined. Unfortunately,
-the way it will fail is simply by not calling the callback. This should be
-fixed - Just don't know how yet.
-
-=cut
 
 sub join_channel {
   my ($self, $channel, $cb) = @_;
@@ -256,18 +152,6 @@ sub join_channel {
   );
 }
 
-=head2 nick
-
-  $self = $self->nick($nick => sub { my ($self, $err) = @_; });
-  $self = $self->nick(sub { my ($self, $err, $nick) = @_; });
-
-Used to set or get the nick for this connection.
-
-Setting the nick will change L</nick> I<after> the nick is actually
-changed on the server.
-
-=cut
-
 sub nick {
   my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
   my ($self, $nick) = @_;
@@ -308,14 +192,6 @@ sub nick {
   return $self;
 }
 
-=head2 part_channel
-
-  $self = $self->part_channel($channel => sub { my ($self, $err) = @_; });
-
-Used to part/leave a channel.
-
-=cut
-
 sub part_channel {
   my ($self, $channel, $cb) = @_;
 
@@ -344,24 +220,6 @@ sub part_channel {
   );
 
 }
-
-=head2 whois
-
-  $self = $self->whois($target, sub { my ($self, $err, $info) = @_; });
-
-Used to retrieve information about a user. C<$info> contains this information
-on success:
-
-  {
-    channels => {"#convos => {mode => "@"}],
-    idle_for => 17454,
-    name     => "Jan Henning Thorsen",
-    nick     => "batman",
-    server   => "hybrid8.debian.local",
-    user     => "jhthorsen",
-  },
-
-=cut
 
 sub whois {
   my ($self, $target, $cb) = @_;
@@ -476,6 +334,133 @@ sub _write_and_wait {
   return $self;
 }
 
+1;
+
+=encoding utf8
+
+=head1 NAME
+
+Mojo::IRC::UA - IRC Client with sugar on top
+
+=head1 SYNOPSIS
+
+  use Mojo::IRC::UA;
+  my $irc = Mojo::IRC::UA->new;
+
+=head1 DESCRIPTION
+
+L<Mojo::IRC::UA> is a module which extends L<Mojo::IRC> with methods
+that can track changes in state on the IRC server.
+
+This module is EXPERIMENTAL and can change without warning.
+
+=head1 ATTRIBUTES
+
+L<Mojo::IRC::UA> inherits all attributes from L<Mojo::IRC> and implements the
+following new ones.
+
+=head2 op_timeout
+
+  $int = $self->op_timeout;
+  $self = $self->op_timeout($int);
+
+Max number of seconds to wait for a response from the IRC server.
+
+=head1 EVENTS
+
+L<Mojo::IRC::UA> inherits all events from L<Mojo::IRC> and implements the
+following new ones.
+
+=head1 METHODS
+
+L<Mojo::IRC::UA> inherits all methods from L<Mojo::IRC> and implements the
+following new ones.
+
+=head2 channels
+
+  $self = $self->channels(sub { my ($self, $err, $channels) = @_; });
+
+Will retrieve available channels on the IRC server. C<$channels> has this
+structure on success:
+
+  {
+    "#convos" => {n_users => 4, topic => "[+nt] some cool topic"},
+  }
+
+NOTE: This might take a long time, if the server has a lot of channels.
+
+=head2 channel_topic
+
+  $self = $self->channel_topic($channel, $topic, sub { my ($self, $err) = @_; });
+  $self = $self->channel_topic($channel, sub { my ($self, $err, $topic) = @_; });
+
+Used to get or set topic for a channel.
+
+=head2 channel_users
+
+  $self = $self->channel_users($channel, sub { my ($self, $err, $users) = @_; });
+
+This can retrieve the users in a channel. C<$users> contains this structure:
+
+  {
+    jhthorsen => {mode => "@"},
+    Superman  => {mode => ""},
+  }
+
+This method is EXPERIMENTAL and can change without warning.
+
+=head2 join_channel
+
+  $self = $self->join_channel($channel => sub { my ($self, $err, $info) = @_; });
+
+Used to join an IRC channel. C<$err> will be false (empty string) on a
+successful join. C<$info> can contain information about the joined channel:
+
+  {
+    topic    => "some cool topic",
+    topic_by => "jhthorsen",
+    users    => {
+      jhthorsen => {mode => "@"},
+      Superman  => {mode => ""},
+    },
+  }
+
+NOTE! This method will fail if the channel is already joined. Unfortunately,
+the way it will fail is simply by not calling the callback. This should be
+fixed - Just don't know how yet.
+
+=head2 nick
+
+  $self = $self->nick($nick => sub { my ($self, $err) = @_; });
+  $self = $self->nick(sub { my ($self, $err, $nick) = @_; });
+
+Used to set or get the nick for this connection.
+
+Setting the nick will change L</nick> I<after> the nick is actually
+changed on the server.
+
+=head2 part_channel
+
+  $self = $self->part_channel($channel => sub { my ($self, $err) = @_; });
+
+Used to part/leave a channel.
+
+=head2 whois
+
+  $self = $self->whois($target, sub { my ($self, $err, $info) = @_; });
+
+Used to retrieve information about a user. C<$info> contains this information
+on success:
+
+  {
+    channels => {"#convos => {mode => "@"}],
+    idle_for => 17454,
+    name     => "Jan Henning Thorsen",
+    nick     => "batman",
+    server   => "hybrid8.debian.local",
+    user     => "jhthorsen",
+  },
+
 =head1 COPYRIGHT AND LICENSE
 
 Copyright (C) 2014, Jan Henning Thorsen
@@ -488,5 +473,3 @@ the terms of the Artistic License version 2.0.
 Jan Henning Thorsen - C<jhthorsen@cpan.org>
 
 =cut
-
-1;
