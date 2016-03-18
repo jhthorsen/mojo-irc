@@ -1,5 +1,8 @@
 Revision history for perl distribution Mojo-IRC
 
+0.30 Not Released
+ - Fix channels() on error to return hash-ref
+
 0.29 2016-03-10T22:22:24+0100
  - Prevent t/parse-irc-message.t from getting run
 
