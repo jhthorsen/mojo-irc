@@ -23,7 +23,7 @@ sub channels {
       my ($self, $event, $err, $msg) = @_;
       my $n = 0;
 
-      return $self->$cb($err || $msg->{params}[1] || $event, []) if $event =~ /^err_/;
+      return $self->$cb($err || $msg->{params}[1] || $event, {}) if $event =~ /^err_/;
       return $self->$cb('', \%channels);
     },
   );
