@@ -27,6 +27,7 @@ has nick          => sub { shift->_build_nick };
 has parser        => sub { Parse::IRC->new; };
 has pass          => '';
 has real_host     => '';
+has track_any     => 0;
 has tls           => undef;
 has user          => sub { $ENV{USER} || getlogin || getpwuid($<) || 'anonymous' };
 
@@ -282,17 +283,22 @@ sub _read {
 CHUNK:
   while ($self->{buffer} =~ s/^([^\015\012]+)[\015\012]//m) {
     warn "[$self->{debug_key}] >>> $1\n" if DEBUG;
-    my $message = $self->parser->parse($1);
-    my $command = $message->{command} or next CHUNK;
+    my $msg = $self->parser->parse($1);
+    my $event = $msg->{command} or next CHUNK;
 
-    if ($command =~ /^\d+$/) {
-      $self->emit("irc_$command" => $message);
-      $command = IRC::Utils::numeric_to_name($command) or next CHUNK;
+    if ($event =~ /^\d+$/) {
+      $self->emit("irc_$event" => $msg);
+      $event = IRC::Utils::numeric_to_name($event) || $event;
     }
-
-    $command = "irc_$command" if $command !~ /^(CTCP|ERR)_/;
-    $self->emit(lc($command) => $message);
-    $self->emit(irc_error => $message) if $command =~ /^ERR_/;
+    if ($event !~ /^\d+$/) {
+      $event = lc $event;
+      $event = "irc_$event" unless $event =~ /^(ctcp|err)_/;
+      $self->emit($event => $msg);
+    }
+    if ($self->{track_any}) {
+      $msg->{event} = $event;
+      $self->emit(irc_any => $msg);
+    }
   }
 }
 
@@ -389,14 +395,6 @@ CTCP messages, and there is a CTCP response.
 
 See L<Mojo::IRC::Events> for sample events.
 
-=head2 irc_error
-
-This event is used to emit IRC errors. For finer granularity, it is also
-possible to listen for events such as C<err_nicknameinuse>.
-
-NOTE: L</irc_error> events are emitted even if you listen to C<err_> events,
-but they are always emitted I<after> the C<err_> event.
-
 =head2 irc_event_name
 
 Events that start with "irc_" are emitted when there is a normal IRC response.
@@ -445,6 +443,10 @@ server that we are connected to.
 Server name and, optionally, a port to connect to. Changing this while
 connected to the IRC server will issue a reconnect.
 
+=head2 user
+
+IRC username. Defaults to current logged in user or falls back to "anonymous".
+
 =head2 tls
 
   $self->tls(undef) # disable (default)
@@ -461,9 +463,21 @@ This can be generated using
   # certtool --generate-privkey --outfile client.key
   # certtool --generate-self-signed --load-privkey client.key --outfile client.crt
 
-=head2 user
+=head2 track_any
 
-IRC username. Defaults to current logged in user or falls back to "anonymous".
+  $bool = $self->track_any;
+
+Setting this attribute to true will cause the "irc_any" event to be emitted on
+any event:
+
+  $self->track_any(1);
+  $self->on(irc_any => sub {
+    my ($self, $msg) = @_;
+    warn "$msg->{event} was emitted\n";
+  });
+
+Note that this event is EXPERIMENTAL. This event was added because the
+catch-all "irc_error" event was removed.
 
 =head1 METHODS
 
