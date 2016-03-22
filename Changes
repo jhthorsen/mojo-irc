@@ -1,6 +1,6 @@
 Revision history for perl distribution Mojo-IRC
 
-0.30 Not Released
+0.30 2016-03-22T12:00:55+0100
  - Fix channels() on error to return hash-ref
  - Breaking change: "irc_error" is not always emitted
  - Add EXPERIMENTAL "irc_any" event
