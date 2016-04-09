@@ -1,5 +1,9 @@
 Revision history for perl distribution Mojo-IRC
 
+0.31 Not Released
+ - Add Test::Mojo::IRC->server attribute
+ - Add Test::Mojo::IRC->start_server can be called as a class method
+
 0.30 2016-03-22T12:00:55+0100
  - Fix channels() on error to return hash-ref
  - Breaking change: "irc_error" is not always emitted

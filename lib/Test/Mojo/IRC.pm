@@ -6,6 +6,8 @@ use Mojo::Util;
 
 $ENV{TEST_MOJO_IRC_SERVER_TIMEOUT} ||= $ENV{TEST_MOJO_IRC_SERVER} ? 10 : 4;
 
+has server => '';
+
 has welcome_message => <<'HERE';
 :hybrid8.local NOTICE AUTH :*** Looking up your hostname...
 :hybrid8.local NOTICE AUTH :*** Checking Ident
@@ -42,7 +44,8 @@ sub run {
 sub start_server {
   my $self = shift;
 
-  return $self->{server} if $self->{server};
+  return $self->new->tap('start_server') unless ref $self;
+  return $self->server if $self->server;
   return $ENV{TEST_MOJO_IRC_SERVER} if $ENV{TEST_MOJO_IRC_SERVER};
 
   my $port = Mojo::IOLoop::Server->generate_port;
@@ -80,7 +83,7 @@ sub start_server {
   );
 
   $self->{server_buf} = '';
-  $self->{server}     = "127.0.0.1:$port";
+  $self->server("127.0.0.1:$port")->server;
 }
 
 sub _concat_server_buf {
@@ -121,9 +124,8 @@ Test::Mojo::IRC - Module for testing Mojo::IRC
 
   use Test::Mojo::IRC -basic;
 
-  my $t      = Test::Mojo::IRC->new;
-  my $server = $t->start_server;
-  my $irc    = Mojo::IRC->new(server => $server);
+  my $t   = Test::Mojo::IRC->start_server;
+  my $irc = Mojo::IRC->new(server => $t->server);
 
   # simulate server/client communication
   $t->run(
@@ -167,6 +169,12 @@ is set, L</start_server> will simply return L<TEST_MOJO_IRC_SERVER> instead
 of setting up a server.
 
 =head1 ATTRIBUTES
+
+=head2 server
+
+  $str = $self->server;
+
+Returns the server address, "host:port", that L</start_server> set up.
 
 =head2 welcome_message
 
@@ -224,8 +232,10 @@ See L</SYNOPSIS> for example.
 =head2 start_server
 
   $server = $self->start_server;
+  $self   = Test::Mojo::IRC->start_server;
 
-Will start a test server and return the "host:port" which it listens to.
+Will start a test server and return L</server>. It can also be called as
+a class method which will return a new object.
 
 =head2 import
 

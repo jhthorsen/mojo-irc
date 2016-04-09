@@ -2,17 +2,16 @@ use Test::Mojo::IRC -basic;
 
 plan skip_all => 'No test data' unless -r 't/data/irc.perl.org';
 
-my $t      = Test::Mojo::IRC->new;
-my $server = $t->start_server;
-my $irc    = Mojo::IRC->new(server => $server);
-my $err    = '';
+my $t   = Test::Mojo::IRC->start_server;
+my $irc = Mojo::IRC->new(server => $t->server);
+my $err = '';
 my ($message, @any, %got);
 
 isa_ok($irc, 'Mojo::IRC', 'Constructor returns right object');
 $irc->nick('test123');
 is $irc->nick, 'test123', 'nick setter works';
 $irc->user('my name');
-is $irc->server, $server, 'server setter works';
+is $irc->server, $t->server, 'server setter works';
 
 $irc->on(irc_any => sub { push @any, $_[1] });
 $irc->on(irc_join => sub { (my $self, $message) = @_; Mojo::IOLoop->stop; });
