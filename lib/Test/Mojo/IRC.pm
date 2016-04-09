@@ -90,7 +90,7 @@ sub _concat_server_buf {
   my ($self, $buf) = @_;
 
   if (ref $buf eq 'ARRAY') {
-    $buf = Mojo::Loader::data_section(@$buf);
+    $buf = Mojo::Loader::data_section(@$buf == 1 ? ('main', @$buf) : @$buf);
   }
   elsif (ref $buf) {
     $buf = Mojo::Util::slurp(File::Spec->catfile(split '/', $$buf));
@@ -131,7 +131,7 @@ Test::Mojo::IRC - Module for testing Mojo::IRC
   $t->run(
     [
       # Send "welcome.irc" from the DATA section when client sends "NICK"
-      qr{\bNICK\b} => [ "main", "motd.irc" ],
+      qr{\bNICK\b} => [qw(main motd.irc)],
     ],
     sub {
       my $err;
@@ -194,7 +194,7 @@ after L</run> has completed. See L</SYNOPSIS> for example code.
 
 =head2 run
 
-  $self->run($reply_on, $cb);
+  $self->run($reply_on, sub { my $self = shift });
 
 Used to simulate communication between IRC server and client. The way this
 works is that the C<$cb> will initiate L<connect|Mojo::IRC/connect> or
@@ -219,7 +219,11 @@ Path to file on disk.
 
 =item * Array ref
 
-The module name and file passed on to L<Mojo::Loader/data_section>.
+The module name and file passed on to L<Mojo::Loader/data_section>. The default
+package is "main", meaning the two examples below is the same:
+
+  $self->run([qr{JOIN}, ["join-reply.irc"]], sub { my $self = shift });
+  $self->run([qr{JOIN}, ["main", "join-reply.irc"]], sub { my $self = shift });
 
 =back
 

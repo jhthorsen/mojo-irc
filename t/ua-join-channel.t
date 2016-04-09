@@ -22,7 +22,7 @@ $irc->connect(sub { Mojo::IOLoop->stop });
 Mojo::IOLoop->start;
 
 $t->run(
-  [qr{USER} => ['main', 'join-convos.irc']],
+  [qr{JOIN} => ['join-convos.irc']],
   sub {
     my ($err, $info);
     $irc->join_channel("#convos", sub { ($err, $info) = @_[1, 2]; Mojo::IOLoop->stop });
@@ -41,7 +41,7 @@ $t->run(
 );
 
 $t->run(
-  [qr{USER} => ['main', 'join-convos.irc']],
+  [qr{USER} => ['join-convos.irc']],
   sub {
     my $err;
     $irc->op_timeout(0.3)->join_channel("#convos", sub { $err = $_[1]; Mojo::IOLoop->stop });
