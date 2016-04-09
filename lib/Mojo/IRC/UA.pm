@@ -35,12 +35,11 @@ sub channel_topic {
   my $res = length($topic // '') ? {} : undef;
 
   if (!$channel) {
-    Mojo::IOLoop->next_tick(sub { $self->$cb('Cannot get/set topic without channel name.', $topic ? () : ('')) });
+    Mojo::IOLoop->next_tick(sub { $self->$cb('Cannot get/set topic without channel name.', {}) });
     return $self;
   }
   if ($channel =~ /\s/) {
-    Mojo::IOLoop->next_tick(
-      sub { $self->$cb('Cannot get/set topic on channel with spaces in name.', $topic ? () : ('')) });
+    Mojo::IOLoop->next_tick(sub { $self->$cb('Cannot get/set topic on channel with spaces in name.', {}) });
     return $self;
   }
 
@@ -58,10 +57,10 @@ sub channel_topic {
       my ($self, $event, $err, $msg) = @_;
 
       if ($event eq 'irc_rpl_notopic') {
-        $res->{message} = '';
+        $res->{topic} = '';
       }
       elsif ($event eq 'irc_rpl_topic') {
-        $res->{message} = $msg->{params}[2] // '';
+        $res->{topic} = $msg->{params}[2] // '';
       }
       elsif ($event eq 'irc_topic') {
         $err = '';
@@ -392,9 +391,10 @@ NOTE: This might take a long time, if the server has a lot of channels.
 =head2 channel_topic
 
   $self = $self->channel_topic($channel, $topic, sub { my ($self, $err) = @_; });
-  $self = $self->channel_topic($channel, sub { my ($self, $err, $topic) = @_; });
+  $self = $self->channel_topic($channel, sub { my ($self, $err, $res) = @_; });
 
-Used to get or set topic for a channel.
+Used to get or set topic for a channel. C<$res> is a hash with a key "topic" which
+holds the current topic.
 
 =head2 channel_users
 

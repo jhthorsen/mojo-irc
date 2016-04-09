@@ -28,7 +28,7 @@ $t->run(
     $irc->channel_topic("#convos", sub { ($err, $topic) = @_[1, 2]; Mojo::IOLoop->stop });
     Mojo::IOLoop->start;
     is $err, '', 'get no error';
-    is_deeply($topic, {message => 'some cool topic'}, 'got topic');
+    is_deeply($topic, {topic => 'some cool topic'}, 'got topic');
   },
 );
 
@@ -49,7 +49,7 @@ $t->run(
     $irc->channel_topic("#test_channel_topic", sub { ($err, $topic) = @_[1, 2]; Mojo::IOLoop->stop });
     Mojo::IOLoop->start;
     is $err, '', 'get no topic error';
-    is_deeply($topic, {message => ''}, 'got no topic');
+    is_deeply($topic, {topic => ''}, 'got no topic');
   },
 );
 
