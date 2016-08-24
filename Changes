@@ -1,5 +1,8 @@
 Revision history for perl distribution Mojo-IRC
 
+0.32 Not Released
+ - Fix joining channel with key
+
 0.31 2016-04-09T23:49:41+0200
  - Add Test::Mojo::IRC->server attribute
  - Add Test::Mojo::IRC->start_server can be called as a class method

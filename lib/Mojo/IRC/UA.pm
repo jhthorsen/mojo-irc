@@ -103,7 +103,8 @@ sub channel_users {
 }
 
 sub join_channel {
-  my ($self, $channel, $cb) = @_;
+  my ($self, $command, $cb) = @_;
+  my ($channel) = split /\s/, $command, 2;
   my $info = {topic => '', topic_by => '', users => {}};
 
   # err_needmoreparams and will not allow special "JOIN 0"
@@ -112,13 +113,9 @@ sub join_channel {
     Mojo::IOLoop->next_tick(sub { $self->$cb('Cannot join without channel name.') });
     return $self;
   }
-  if ($channel =~ /\s/) {
-    Mojo::IOLoop->next_tick(sub { $self->$cb('Cannot join channel with spaces.') });
-    return $self;
-  }
 
   return $self->_write_and_wait(
-    Parse::IRC::parse_irc("JOIN $channel"),
+    Parse::IRC::parse_irc("JOIN $command"),
     {
       err_badchanmask     => {1 => $channel},
       err_badchannelkey   => {1 => $channel},
