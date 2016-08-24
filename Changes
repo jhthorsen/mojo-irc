@@ -1,6 +1,6 @@
 Revision history for perl distribution Mojo-IRC
 
-0.32 Not Released
+0.32 2016-08-24T17:15:41+0200
  - Fix joining channel with key
 
 0.31 2016-04-09T23:49:41+0200
