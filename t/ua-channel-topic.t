@@ -43,6 +43,16 @@ $t->run(
 );
 
 $t->run(
+  [qr{TOPIC} => ['main', 'chan-op.irc']],
+  sub {
+    my $err;
+    $irc->channel_topic("#convos", "not op?", sub { $err = $_[1]; Mojo::IOLoop->stop });
+    Mojo::IOLoop->start;
+    is $err, "You're not channel operator", 'chanoprivsneeded';
+  },
+);
+
+$t->run(
   [qr{TOPIC} => ['main', 'no-topic.irc']],
   sub {
     my ($err, $topic);
@@ -75,3 +85,5 @@ __DATA__
 :test20949!test20949@i.love.debian.org TOPIC #test_channel_topic :awesomeness
 @@ no-topic.irc
 :hybrid8.debian.local 331 test18655 #test_channel_topic :No topic is set.
+@@ chan-op.irc
+:hybrid8.debian.local 482 test18655 #convos :You're not channel operator

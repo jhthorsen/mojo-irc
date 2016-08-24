@@ -18,7 +18,7 @@ $irc->connect(sub { Mojo::IOLoop->stop });
 Mojo::IOLoop->start;
 
 $t->run(
-  [qr{USER} => ['main', 'join-convos.irc']],
+  [qr{USER} => ['main', 'join.irc']],
   sub {
     $err = 'somethingweird';
     $irc->join_channel("#test123", sub { $err = $_[1]; Mojo::IOLoop->stop });
@@ -50,12 +50,12 @@ $t->run(
 done_testing;
 
 __DATA__
-@@ join-convos.irc
-:test21362!test21362@i.love.debian.org JOIN :#convos
-:hybrid8.debian.local 332 test21362 #convos :some cool topic
-:hybrid8.debian.local 333 test21362 #convos jhthorsen!jhthorsen@i.love.debian.org 1432932059
-:hybrid8.debian.local 353 test21362 = #convos :Test21362 @batman
-:hybrid8.debian.local 366 test21362 #convos :End of /NAMES list.
+@@ join.irc
+:test21362!test21362@i.love.debian.org JOIN :#test123
+:hybrid8.debian.local 332 test21362 #test123 :some cool topic
+:hybrid8.debian.local 333 test21362 #test123 jhthorsen!jhthorsen@i.love.debian.org 1432932059
+:hybrid8.debian.local 353 test21362 = #test123 :Test21362 @batman
+:hybrid8.debian.local 366 test21362 #test123 :End of /NAMES list.
 @@ not-on-that-channel.irc
 :hades.arpa 442 test21362 #foo :You are not on that channel
 @@ part.irc

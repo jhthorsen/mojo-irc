@@ -7,7 +7,7 @@ use IRC::Utils   ();
 use Parse::IRC   ();
 use Scalar::Util ();
 use Unicode::UTF8;
-use constant DEBUG => $ENV{MOJO_IRC_DEBUG} ? 1 : 0;
+use constant DEBUG        => $ENV{MOJO_IRC_DEBUG}     || 0;
 use constant DEFAULT_CERT => $ENV{MOJO_IRC_CERT_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.crt';
 use constant DEFAULT_KEY  => $ENV{MOJO_IRC_KEY_FILE}  || catfile dirname(__FILE__), 'mojo-irc-client.key';
 
@@ -293,6 +293,7 @@ CHUNK:
     if ($event !~ /^\d+$/) {
       $event = lc $event;
       $event = "irc_$event" unless $event =~ /^(ctcp|err)_/;
+      warn "[$self->{debug_key}] === $event\n" if DEBUG == 2;
       $self->emit($event => $msg);
     }
     if ($self->{track_any}) {

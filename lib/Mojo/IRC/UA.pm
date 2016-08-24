@@ -1,6 +1,5 @@
 package Mojo::IRC::UA;
 use Mojo::Base 'Mojo::IRC';
-use List::Util 'all';
 
 has op_timeout => 10;
 
@@ -51,7 +50,7 @@ sub channel_topic {
       err_notonchannel     => {1 => $channel},
       irc_rpl_notopic      => {1 => $channel},
       irc_rpl_topic        => {1 => $channel},    # :hybrid8.debian.local 332 superman #convos :get cool topic
-      irc_topic            => {1 => $channel},    # set
+      irc_topic            => {0 => $channel},    # set
     },
     sub {
       my ($self, $event, $err, $msg) = @_;
@@ -165,7 +164,7 @@ sub nick {
         {
           err_erroneusnickname => {0 => $nick},
           err_nickcollision    => {0 => $nick},
-          err_nicknameinuse    => {0 => $nick},
+          err_nicknameinuse    => {1 => $nick},
           err_restricted       => {},
           err_unavailresource  => {},
           irc_nick             => {0 => $nick},    # :Superman12923!superman@i.love.debian.org NICK :Supermanx12923
@@ -307,7 +306,12 @@ sub _write_and_wait {
       $event => sub {
         my ($self, $msg) = @_;
         return $self->$needle($msg) if ref $needle eq 'CODE';
-        return unless all { +(/^\d/ ? $msg->{params}[$_] : $msg->{$_}) // '' eq $needle->{$_} } keys %$needle;
+
+        for my $k (keys %$needle) {
+          my $v = $k =~ /^\d/ ? $msg->{params}[$k] : $msg->{$k};
+          return unless $v eq $needle->{$k};
+        }
+
         Mojo::IOLoop->remove($tid);
         $self->unsubscribe(shift @subscriptions, shift @subscriptions) while @subscriptions;
         $self->$handler($event => '', $msg);

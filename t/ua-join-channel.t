@@ -15,6 +15,16 @@ $irc->connect(sub { Mojo::IOLoop->stop });
 Mojo::IOLoop->start;
 
 $t->run(
+  [qr{JOIN} => ['cannot-join-convos.irc']],
+  sub {
+    my ($err, $info);
+    $irc->join_channel("#convos", sub { ($err, $info) = @_[1, 2]; Mojo::IOLoop->stop });
+    Mojo::IOLoop->start;
+    is $err, 'Cannot join channel (+k)', 'cannot join +k';
+  },
+);
+
+$t->run(
   [qr{JOIN} => ['join-convos.irc']],
   sub {
     my ($err, $info);
@@ -47,8 +57,11 @@ $t->run(
 done_testing;
 
 __DATA__
+@@ cannot-join-convos.irc
+:hybrid8.debian.local 475 Superman20001 #convos :Cannot join channel (+k)
 @@ join-convos.irc
 :test21362!test21362@i.love.debian.org JOIN :#convos
+:hybrid8.debian.local 475 Superman20001 #foo :Cannot join channel (+k)
 :hybrid8.debian.local 332 test21362 #convos :some cool topic
 :hybrid8.debian.local 333 test21362 #convos jhthorsen!jhthorsen@i.love.debian.org 1432932059
 :hybrid8.debian.local 353 test21362 = #convos :Test21362 @batman

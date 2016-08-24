@@ -1,5 +1,8 @@
 Revision history for perl distribution Mojo-IRC
 
+0.33 Not Released
+ - Fix Mojo::IRC::UA triggered callback on wrong IRC event
+
 0.32 2016-08-24T17:15:41+0200
  - Fix joining channel with key
 

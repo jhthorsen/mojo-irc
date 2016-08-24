@@ -12,12 +12,12 @@ $t->run(
   sub {
     my ($err, $nick);
 
-    $irc->nick("testX$$", sub { ($err) = @_[1, 2]; Mojo::IOLoop->stop });
+    $irc->nick("testX15044", sub { ($err) = @_[1, 2]; Mojo::IOLoop->stop });
     Mojo::IOLoop->start;
     is $err, '', 'set nick';
 
     $irc->nick(sub { ($err, $nick) = @_[1, 2] });
-    is $nick, "testX$$", 'get test';
+    is $nick, "testX15044", 'get test';
   }
 );
 
