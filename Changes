@@ -1,5 +1,8 @@
 Revision history for perl distribution Mojo-IRC
 
+0.34 Not Released
+ - Add connect_timeout() attribute
+
 0.33 2016-08-24T22:40:14+0200
  - Fix Mojo::IRC::UA triggered callback on wrong IRC event
 

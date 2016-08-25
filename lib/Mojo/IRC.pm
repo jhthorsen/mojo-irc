@@ -20,16 +20,17 @@ my @DEFAULT_EVENTS = qw(
   ctcp_ping ctcp_time ctcp_version
 );
 
-has ioloop => sub { Mojo::IOLoop->singleton };
-has local_address => '';
-has name          => 'Mojo IRC';
-has nick          => sub { shift->_build_nick };
-has parser        => sub { Parse::IRC->new; };
-has pass          => '';
-has real_host     => '';
-has track_any     => 0;
-has tls           => undef;
-has user          => sub { $ENV{USER} || getlogin || getpwuid($<) || 'anonymous' };
+has connect_timeout => sub { $ENV{MOJO_IRC_CONNECT_TIMEOUT} || 30 };
+has ioloop          => sub { Mojo::IOLoop->singleton };
+has local_address   => '';
+has name            => 'Mojo IRC';
+has nick   => sub { shift->_build_nick };
+has parser => sub { Parse::IRC->new; };
+has pass   => '';
+has real_host => '';
+has track_any => 0;
+has tls       => undef;
+has user      => sub { $ENV{USER} || getlogin || getpwuid($<) || 'anonymous' };
 
 sub server {
   my ($self, $server) = @_;
@@ -81,6 +82,7 @@ sub connect {
   $self->{stream_id} = $self->ioloop->client(
     address => $host,
     port    => $port,
+    timeout => $self->connect_timeout,
     @extra,
     sub {
       my ($loop, $err, $stream) = @_;
@@ -402,6 +404,15 @@ Events that start with "irc_" are emitted when there is a normal IRC response.
 See L<Mojo::IRC::Events> for sample events.
 
 =head1 ATTRIBUTES
+
+=head2 connect_timeout
+
+  $int = $self->connect_timeout;
+  $self = $self->connect_timeout(60);
+
+Maximum amount of time in seconds establishing a connection may take before
+getting canceled, defaults to the value of the C<MOJO_IRC_CONNECT_TIMEOUT>
+environment variable or 30.
 
 =head2 ioloop
 
