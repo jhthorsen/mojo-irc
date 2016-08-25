@@ -1,6 +1,6 @@
 Revision history for perl distribution Mojo-IRC
 
-0.34 Not Released
+0.34 2016-08-25T22:44:57+0200
  - Add connect_timeout() attribute
 
 0.33 2016-08-24T22:40:14+0200

@@ -2,7 +2,7 @@ NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
 VERSION
-    0.33
+    0.34
 
 SYNOPSIS
       my $irc = Mojo::IRC->new(
@@ -82,6 +82,14 @@ EVENTS
     response. See Mojo::IRC::Events for sample events.
 
 ATTRIBUTES
+  connect_timeout
+      $int = $self->connect_timeout;
+      $self = $self->connect_timeout(60);
+
+    Maximum amount of time in seconds establishing a connection may take
+    before getting canceled, defaults to the value of the
+    "MOJO_IRC_CONNECT_TIMEOUT" environment variable or 30.
+
   ioloop
     Holds an instance of Mojo::IOLoop.
 
