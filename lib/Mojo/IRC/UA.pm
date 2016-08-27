@@ -147,6 +147,13 @@ sub join_channel {
   );
 }
 
+sub mode {
+  my $cb = pop;
+  my ($self, $mode) = @_;
+  return $self->_mode_for_channel($1, $2, $cb) if $mode and $mode =~ /(\S+)\s+(.+)/;
+  return $self->_mode_for_user($mode, $cb);    # get or set
+}
+
 sub nick {
   my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
   my ($self, $nick) = @_;
@@ -262,6 +269,56 @@ sub whois {
     sub {
       my ($self, $event, $err, $msg) = @_;
       $self->$cb($event =~ /^err_/ ? $err || $msg->{params}[2] || $event : '', $info);
+    }
+  );
+}
+
+sub _mode_for_channel {
+  my ($self, $target, $mode, $cb) = @_;
+  my $res = {banlist => [], exceptlist => [], invitelist => [], uniqopis => [], mode => $mode, params => ''};
+
+  return $self->_write_and_wait(
+    Parse::IRC::parse_irc("MODE $target $mode"),
+    {
+      err_chanoprivsneeded    => {1 => $target},
+      err_keyset              => {1 => $target},
+      err_needmoreparams      => {1 => $target},
+      err_nochanmodes         => {1 => $target},
+      err_unknownmode         => {1 => $target},
+      err_usernotinchannel    => {1 => $target},
+      irc_mode                => {0 => $target},
+      irc_rpl_endofbanlist    => {1 => $target},
+      irc_rpl_endofexceptlist => {1 => $target},
+      irc_rpl_endofinvitelist => {1 => $target},
+      irc_rpl_channelmodeis => sub { @$res{qw(mode params)} = @{$_[1]->{params}}[1, 2] },
+      irc_rpl_banlist    => sub { push @{$res->{banlist}},    $_[1]->{params}[1] },
+      irc_rpl_exceptlist => sub { push @{$res->{exceptlist}}, $_[1]->{params}[1] },
+      irc_rpl_invitelist => sub { push @{$res->{invitelist}}, $_[1]->{params}[1] },
+      irc_rpl_uniqopis   => sub { push @{$res->{uniqopis}},   $_[1]->{params}[1] },
+    },
+    sub {
+      my ($self, $event, $err, $msg) = @_;
+      $self->$cb($event =~ /^(?:err_)/ ? $err || $msg->{params}[2] || $event : '', $res);
+    }
+  );
+}
+
+sub _mode_for_user {
+  my ($self, $mode, $cb) = @_;
+  my $nick = $self->nick;
+
+  return $self->_write_and_wait(
+    Parse::IRC::parse_irc($mode ? "MODE $nick $mode" : "MODE $nick"),
+    {
+      err_umodeunknownflag => {},
+      err_needmoreparams   => {},
+      err_usersdontmatch   => {},
+      irc_mode             => {0 => $nick},
+      irc_rpl_umodeis      => {0 => $nick},
+    },
+    sub {
+      my ($self, $event, $err, $msg) = @_;
+      $self->$cb($event =~ /^(?:err_)/ ? $err || $event : '', $msg->{params}[1]);
     }
   );
 }
@@ -429,6 +486,16 @@ successful join. C<$info> can contain information about the joined channel:
 NOTE! This method will fail if the channel is already joined. Unfortunately,
 the way it will fail is simply by not calling the callback. This should be
 fixed - Just don't know how yet.
+
+=head2 modp
+
+  $self = $self->mode(sub { my ($self, $err, $mode) = @_; });
+  $self = $self->mode("-i", sub { my ($self, $err, $mode) = @_; });
+  $self = $self->mode("#channel +k secret", sub { my ($self, $err, $mode) = @_; });
+
+This method is used to get or set a user mode or set a channel mode.
+
+C<$mode> is EXPERIMENTAL, but holds a hash, with "mode" as key.
 
 =head2 nick
 
