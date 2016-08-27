@@ -45,8 +45,8 @@ $t->run(
     my ($err, $mode);
     $irc->mode('#random +k secret', sub { ($err, $mode) = @_[1, 2]; Mojo::IOLoop->stop });
     Mojo::IOLoop->start;
-    is $err,  '',          'channel mode err';
-    is $mode, '+k secret', 'channel mode set';
+    is $err, '', 'channel mode err';
+    is $mode->{mode}, '+k secret', 'channel mode set';
   },
 );
 

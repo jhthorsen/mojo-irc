@@ -1,6 +1,7 @@
 Revision history for perl distribution Mojo-IRC
 
 0.35 Not Released
+ - Add Mojo::IRC::UA->kick() method
  - Add Mojo::IRC::UA->mode() method
 
 0.34 2016-08-25T22:44:57+0200

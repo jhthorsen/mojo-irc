@@ -1,6 +1,8 @@
 package Mojo::IRC::UA;
 use Mojo::Base 'Mojo::IRC';
 
+use IRC::Utils ();
+
 has op_timeout => 10;
 
 sub channels {
@@ -143,6 +145,35 @@ sub join_channel {
     sub {
       my ($self, $event, $err, $msg) = @_;
       $self->$cb($event =~ /^(?:err_|irc_479)/ ? $err || $msg->{params}[2] || $event : '', $info);
+    }
+  );
+}
+
+sub kick {
+  my ($self, $command, $cb) = @_;
+  my ($target, $user) = $command =~ /(\S+)\s+(.*)/;
+  my $res = {reason => ''};
+
+  $target //= '';
+  $user   //= '';
+  $self->_write_and_wait(
+    Parse::IRC::parse_irc("KICK $command"),
+    {
+      err_needmoreparams   => {},
+      err_nosuchchannel    => {1 => $target},
+      err_nosuchnick       => {1 => $user},
+      err_badchanmask      => {1 => $target},
+      err_chanoprivsneeded => {1 => $target},
+      err_usernotinchannel => {1 => $user},
+      err_notonchannel     => {1 => $target},
+      irc_kick             => {0 => $target, 1 => $user},
+    },
+    sub {
+      my ($self, $event, $err, $msg) = @_;
+      my ($nick) = IRC::Utils::parse_user($msg->{prefix});
+      $msg->{params}[2] //= '';
+      $res->{reason} = $msg->{params}[2] eq $nick ? '' : $msg->{params}[2];
+      $self->$cb($event =~ /^err_/ ? $err || $msg->{params}[2] || $event : '', $res);
     }
   );
 }
@@ -487,7 +518,15 @@ NOTE! This method will fail if the channel is already joined. Unfortunately,
 the way it will fail is simply by not calling the callback. This should be
 fixed - Just don't know how yet.
 
-=head2 modp
+=head2 kick
+
+  $self = $self->kick("#channel superman", sub { my ($self, $err, $res) = @_; });
+
+Used to kick a user. C<$res> looks like this:
+
+  {reason => "you don't behave"}
+
+=head2 mode
 
   $self = $self->mode(sub { my ($self, $err, $mode) = @_; });
   $self = $self->mode("-i", sub { my ($self, $err, $mode) = @_; });
