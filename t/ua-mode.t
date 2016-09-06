@@ -54,14 +54,11 @@ done_testing;
 
 __DATA__
 @@ mode-i.irc
-MODE test_____ -i
 :test_____!~test70243@localhost MODE other :+i
-:test_____!~test70243@localhost MODE test_____ +
+:test_____!~test70243@localhost MODE test_____ -i
 @@ mode-get.irc
-MODE test_____
 :hades.arpa 221 other x
 :hades.arpa 221 test_____ +
 @@ channel-mode-set.irc
-MODE #random +k secret
 :test_____!~test72489@localhost MODE #foo -k
 :test_____!~test72489@localhost MODE #random +k secret
