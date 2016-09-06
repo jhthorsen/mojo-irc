@@ -1,6 +1,6 @@
 Revision history for perl distribution Mojo-IRC
 
-0.36 Not Released
+0.36 2016-09-06T21:31:13+0200
  - Fix t/ua-mode.t #28
 
 0.35 2016-08-29T09:14:48+0200
