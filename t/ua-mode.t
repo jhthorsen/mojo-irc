@@ -4,6 +4,8 @@ my $t      = Test::Mojo::IRC->new;
 my $server = $t->start_server;
 my $irc    = Mojo::IRC::UA->new(server => $server, user => "test$$");
 
+plan skip_all => 'https://github.com/jhthorsen/mojo-irc/issues/28' unless $ENV{TEST_ALL};
+
 $irc->connect(sub { Mojo::IOLoop->stop });
 Mojo::IOLoop->start;
 

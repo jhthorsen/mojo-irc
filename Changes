@@ -1,5 +1,8 @@
 Revision history for perl distribution Mojo-IRC
 
+0.37 2016-09-07T09:17:08+0200
+ - Skipping t/ua-mode.t for now. https://github.com/jhthorsen/mojo-irc/issues/28
+
 0.36 2016-09-06T21:31:13+0200
  - Fix t/ua-mode.t #28
 

@@ -536,6 +536,9 @@ This method is used to get or set a user mode or set a channel mode.
 
 C<$mode> is EXPERIMENTAL, but holds a hash, with "mode" as key.
 
+Note that this method seems to be unstable. Working on a fix:
+L<https://github.com/jhthorsen/mojo-irc/issues/28>.
+
 =head2 nick
 
   $self = $self->nick($nick => sub { my ($self, $err) = @_; });
