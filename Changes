@@ -1,6 +1,6 @@
 Revision history for perl distribution Mojo-IRC
 
-0.38 Not Released
+0.38 2016-09-14T23:10:59+0200
  - Fix matching channel names case insensitive in Mojo::IRC::UA
 
 0.37 2016-09-07T09:17:08+0200
