@@ -93,7 +93,7 @@ sub channel_users {
       irc_rpl_endofnames => {1 => $channel},
       irc_rpl_namreply   => sub {
         my ($self, $msg) = @_;
-        $self->_parse_namreply($msg, $users) if $msg->{params}[2] eq $channel;
+        $self->_parse_namreply($msg, $users) if lc $msg->{params}[2] eq lc $channel;
       },
     },
     sub {
@@ -131,15 +131,15 @@ sub join_channel {
       irc_rpl_endofnames  => {1 => $channel},    # :hybrid8.debian.local 366 superman #convos :End of /NAMES list.
       irc_rpl_namreply    => sub {
         my ($self, $msg) = @_;
-        $self->_parse_namreply($msg, $info->{users}) if $msg->{params}[2] eq $channel;
+        $self->_parse_namreply($msg, $info->{users}) if lc $msg->{params}[2] eq lc $channel;
       },
       irc_rpl_topic => sub {
         my ($self, $msg) = @_;
-        $info->{topic} = $msg->{params}[2] if $msg->{params}[1] eq $channel;
+        $info->{topic} = $msg->{params}[2] if lc $msg->{params}[1] eq lc $channel;
       },
       irc_rpl_topicwhotime => sub {
         my ($self, $msg) = @_;
-        $info->{topic_by} = $msg->{params}[2] if $msg->{params}[1] eq $channel;
+        $info->{topic_by} = $msg->{params}[2] if lc $msg->{params}[1] eq lc $channel;
       },
     },
     sub {
@@ -172,7 +172,7 @@ sub kick {
       my ($self, $event, $err, $msg) = @_;
       my ($nick) = IRC::Utils::parse_user($msg->{prefix});
       $msg->{params}[2] //= '';
-      $res->{reason} = $msg->{params}[2] eq $nick ? '' : $msg->{params}[2];
+      $res->{reason} = lc $msg->{params}[2] eq lc $nick ? '' : $msg->{params}[2];
       $self->$cb($event =~ /^err_/ ? $err || $msg->{params}[2] || $event : '', $res);
     }
   );
@@ -272,7 +272,7 @@ sub whois {
       irc_rpl_endofwhois => {1 => $target},
       irc_rpl_whoischannels => sub {
         my ($self, $msg) = @_;
-        return unless $msg->{params}[1] eq $target;
+        return unless lc $msg->{params}[1] eq lc $target;
         for (split /\s+/, $msg->{params}[2] || '') {
           my ($mode, $channel) = /^([+@]?)(.+)$/;
           $info->{channels}{$channel} = {mode => $mode};
@@ -280,18 +280,18 @@ sub whois {
       },
       irc_rpl_whoisidle => sub {
         my ($self, $msg) = @_;
-        return unless $msg->{params}[1] eq $target;
+        return unless lc $msg->{params}[1] eq lc $target;
         $info->{idle_for} = 0 + $msg->{params}[2];
       },
       irc_rpl_whoisoperator => {},     # TODO
       irc_rpl_whoisserver   => sub {
         my ($self, $msg) = @_;
-        return unless $msg->{params}[1] eq $target;
+        return unless lc $msg->{params}[1] eq lc $target;
         $info->{server} = $msg->{params}[2];
       },
       irc_rpl_whoisuser => sub {
         my ($self, $msg) = @_;
-        return unless $msg->{params}[1] eq $target;
+        return unless lc $msg->{params}[1] eq lc $target;
         $info->{nick} = $msg->{params}[1];
         $info->{user} = $msg->{params}[2];
         $info->{name} = $msg->{params}[5];
@@ -397,7 +397,7 @@ sub _write_and_wait {
 
         for my $k (keys %$needle) {
           my $v = $k =~ /^\d/ ? $msg->{params}[$k] : $msg->{$k};
-          return unless $v eq $needle->{$k};
+          return unless lc $v eq lc $needle->{$k};
         }
 
         Mojo::IOLoop->remove($tid);
