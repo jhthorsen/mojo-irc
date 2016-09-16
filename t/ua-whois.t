@@ -26,7 +26,7 @@ $t->run(
       {
         channels => {'#test123' => {mode => '@'}, '#convos' => {mode => '@'}},
         idle_for => 17454,
-        name     => 'Jan Henning Thorsen',
+        name     => 'Convos v0.99_08',
         nick     => 'batman',
         server   => 'hybrid8.debian.local',
         user     => 'jhthorsen',
@@ -40,7 +40,7 @@ done_testing;
 
 __DATA__
 @@ whois-jhthorsen.irc
-:hybrid8.debian.local 311 test26217 batman jhthorsen i.love.debian.org * :Jan Henning Thorsen
+:hybrid8.debian.local 311 test26217 batman jhthorsen i.love.debian.org * :Convos v0.99_08
 :hybrid8.debian.local 319 test26217 batman :@#test123 @#convos
 :hybrid8.debian.local 312 test26217 batman hybrid8.debian.local :ircd-hybrid 8.1-debian
 :hybrid8.debian.local 338 test26217 batman 255.255.255.255 :actually using host
