@@ -24,12 +24,14 @@ $t->run(
     is_deeply(
       $info,
       {
-        channels => {'#test123' => {mode => '@'}, '#convos' => {mode => '@'}},
-        idle_for => 17454,
-        name     => 'Convos v0.99_08',
-        nick     => 'batman',
-        server   => 'hybrid8.debian.local',
-        user     => 'jhthorsen',
+        channels    => {'#test123' => {mode => '@'}, '#convos' => {mode => '@'}},
+        host        => 'i.love.debian.org',
+        idle_for    => 17454,
+        server_info => 'ircd-hybrid 8.1-debian',
+        name        => 'Convos v0.99_08',
+        nick        => 'batman',
+        server      => 'hybrid8.debian.local',
+        user        => 'jhthorsen',
       },
       'info'
     );

@@ -287,13 +287,15 @@ sub whois {
       irc_rpl_whoisserver   => sub {
         my ($self, $msg) = @_;
         return unless lc $msg->{params}[1] eq lc $target;
-        $info->{server} = $msg->{params}[2];
+        $info->{server}      = $msg->{params}[2];
+        $info->{server_info} = $msg->{params}[3];
       },
       irc_rpl_whoisuser => sub {
         my ($self, $msg) = @_;
         return unless lc $msg->{params}[1] eq lc $target;
         $info->{nick} = $msg->{params}[1];
         $info->{user} = $msg->{params}[2];
+        $info->{host} = $msg->{params}[3];
         $info->{name} = $msg->{params}[5];
       },
     },
@@ -564,6 +566,7 @@ on success:
 
   {
     channels => {"#convos => {mode => "@"}],
+    host     => "example.com",
     idle_for => 17454,
     name     => "Jan Henning Thorsen",
     nick     => "batman",
