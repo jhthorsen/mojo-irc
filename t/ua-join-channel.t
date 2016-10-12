@@ -34,6 +34,7 @@ $t->run(
     is_deeply(
       $info,
       {
+        name     => '#convos',
         topic    => 'some cool topic',
         topic_by => 'jhthorsen!jhthorsen@i.love.debian.org',
         users    => {batman => {mode => '@'}, Test21362 => {mode => ''}},

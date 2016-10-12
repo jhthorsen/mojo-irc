@@ -129,7 +129,15 @@ sub join_channel {
       err_unavailresource => {1 => $channel},
       irc_479             => {1 => $channel},    # Illegal channel name
       irc_rpl_endofnames  => {1 => $channel},    # :hybrid8.debian.local 366 superman #convos :End of /NAMES list.
-      irc_rpl_namreply    => sub {
+      err_linkchannel     => sub {
+        my ($self, $msg) = @_;
+        return unless lc $msg->{params}[1] eq lc $channel;
+        for my $item (values %{$msg->{look_for}}) {
+          $item->{1} = $msg->{params}[2] if ref $item eq 'HASH' and $item->{1} and $item->{1} eq $channel;
+        }
+        $channel = $msg->{params}[2];
+      },
+      irc_rpl_namreply => sub {
         my ($self, $msg) = @_;
         $self->_parse_namreply($msg, $info->{users}) if lc $msg->{params}[2] eq lc $channel;
       },
@@ -144,6 +152,7 @@ sub join_channel {
     },
     sub {
       my ($self, $event, $err, $msg) = @_;
+      $info->{name} = $channel;
       $self->$cb($event =~ /^(?:err_|irc_479)/ ? $err || $msg->{params}[2] || $event : '', $info);
     }
   );
@@ -391,10 +400,11 @@ sub _write_and_wait {
 
   # Set up which IRC events to look for
   for my $event (keys %$look_for) {
-    my $needle = $look_for->{$event};
     push @subscriptions, $event, $self->on(
       $event => sub {
         my ($self, $msg) = @_;
+        my $needle = $look_for->{$event};
+        local $msg->{look_for} = $look_for;
         return $self->$needle($msg) if ref $needle eq 'CODE';
 
         for my $k (keys %$needle) {
@@ -505,9 +515,10 @@ This method is EXPERIMENTAL and can change without warning.
   $self = $self->join_channel($channel => sub { my ($self, $err, $info) = @_; });
 
 Used to join an IRC channel. C<$err> will be false (empty string) on a
-successful join. C<$info> can contain information about the joined channel:
+successful join. C<$info> will contain information about the joined channel:
 
   {
+    name     => "#channel_name",
     topic    => "some cool topic",
     topic_by => "jhthorsen",
     users    => {
@@ -515,6 +526,10 @@ successful join. C<$info> can contain information about the joined channel:
       Superman  => {mode => ""},
     },
   }
+
+"name" in C<$info> holds the actual channel name that is joined. This will not
+be the same as C<$channel> in case of "ERR_LINKCHANNEL" (470) events, where you
+are automatically redirected to another channel.
 
 NOTE! This method will fail if the channel is already joined. Unfortunately,
 the way it will fail is simply by not calling the callback. This should be

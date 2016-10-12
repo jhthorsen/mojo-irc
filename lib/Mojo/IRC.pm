@@ -13,6 +13,8 @@ use constant DEFAULT_KEY  => $ENV{MOJO_IRC_KEY_FILE}  || catfile dirname(__FILE_
 
 our $VERSION = '0.39';
 
+our %NUMERIC2NAME = (470 => 'ERR_LINKCHANNEL');
+
 my %CTCP_QUOTE = ("\012" => 'n', "\015" => 'r', "\0" => '0', "\cP" => "\cP");
 
 my @DEFAULT_EVENTS = qw(
@@ -290,7 +292,7 @@ CHUNK:
 
     if ($event =~ /^\d+$/) {
       $self->emit("irc_$event" => $msg);
-      $event = IRC::Utils::numeric_to_name($event) || $event;
+      $event = $NUMERIC2NAME{$event} || IRC::Utils::numeric_to_name($event) || $event;
     }
     if ($event !~ /^\d+$/) {
       $event = lc $event;
