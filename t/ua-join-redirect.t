@@ -31,8 +31,8 @@ done_testing;
 
 __DATA__
 @@ join-convos.irc
-:wilhelm.freenode.net 470 test_____ #convos ##convos :Forwarding to another channel
-:test_____!~test12120@gw.reisegiganten.net JOIN ##convos
+:hybrid8.debian.local 470 test_____ #convos ##convos :Forwarding to another channel
+:test_____!~test12120@somehost JOIN ##convos
 :hybrid8.debian.local 332 test21362 ##convos :some cool topic
 :hybrid8.debian.local 333 test21362 ##convos jhthorsen!jhthorsen@i.love.debian.org 1432932059
 :hybrid8.debian.local 353 test21362 @ ##convos :Test21362 @batman
