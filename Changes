@@ -1,6 +1,6 @@
 Revision history for perl distribution Mojo-IRC
 
-0.40 Not Released
+0.40 2016-10-13T09:40:46+0200
  - Add support for JOIN redirects Nordaaker/Convos#284
 
 0.39 2016-09-16T09:34:40+0200
