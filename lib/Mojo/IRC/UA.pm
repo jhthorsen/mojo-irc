@@ -369,7 +369,7 @@ sub _parse_namreply {
   my ($self, $msg, $users) = @_;
 
   for my $nick (sort { lc $a cmp lc $b } split /\s+/, $msg->{params}[3]) {
-    $users->{$nick}{mode} = $nick =~ s/^([@~+*])// ? $1 : '';
+    $users->{$nick}{mode} = $nick =~ s/^([~&@%+*]+)// ? $1 : '';
   }
 }
 

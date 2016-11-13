@@ -25,8 +25,19 @@ $t->run(
     $irc->channel_users("#convos", sub { ($err, $users) = @_[1, 2]; Mojo::IOLoop->stop });
     Mojo::IOLoop->start;
     is $err, '', 'no error';
-    is_deeply($users, {foo => {mode => '+'}, bar => {mode => '@'}, test6851 => {mode => ''}, batman => {mode => '@'},},
-      'users');
+    is_deeply(
+      $users,
+      {
+        bar      => {mode => '@'},
+        baz      => {mode => '&'},
+        foo      => {mode => '+'},
+        man      => {mode => '~'},
+        super    => {mode => '%'},
+        batman   => {mode => '@'},
+        test6851 => {mode => ''},
+      },
+      'users'
+    );
   },
 );
 
@@ -35,5 +46,5 @@ done_testing;
 __DATA__
 @@ convos-names.irc
 :hybrid8.debian.local 353 test6851 = #convos :test6851 @batman
-:hybrid8.debian.local 353 test6851 = #convos :@bar +foo
+:hybrid8.debian.local 353 test6851 = #convos :@bar +foo &baz %super ~man
 :hybrid8.debian.local 366 test6851 #convos :End of /NAMES list.

@@ -1,5 +1,8 @@
 Revision history for perl distribution Mojo-IRC
 
+0.41 Not Released
+ - Fix parsing nicks with & and % modes Nordaaker/Convos#287
+
 0.40 2016-10-13T09:40:46+0200
  - Add support for JOIN redirects Nordaaker/Convos#284
 
