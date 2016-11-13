@@ -11,7 +11,7 @@ use constant DEBUG        => $ENV{MOJO_IRC_DEBUG}     || 0;
 use constant DEFAULT_CERT => $ENV{MOJO_IRC_CERT_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.crt';
 use constant DEFAULT_KEY  => $ENV{MOJO_IRC_KEY_FILE}  || catfile dirname(__FILE__), 'mojo-irc-client.key';
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 our %NUMERIC2NAME = (470 => 'ERR_LINKCHANNEL');
 
@@ -317,7 +317,7 @@ Mojo::IRC - IRC Client for the Mojo IOLoop
 
 =head1 VERSION
 
-0.40
+0.41
 
 =head1 SYNOPSIS
 

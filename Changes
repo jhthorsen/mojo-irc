@@ -1,6 +1,6 @@
 Revision history for perl distribution Mojo-IRC
 
-0.41 Not Released
+0.41 2016-11-13T14:01:01+0100
  - Fix parsing nicks with & and % modes Nordaaker/Convos#287
 
 0.40 2016-10-13T09:40:46+0200
