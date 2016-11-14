@@ -367,9 +367,16 @@ sub _mode_for_user {
 
 sub _parse_namreply {
   my ($self, $msg, $users) = @_;
+  my $prefix = $self->server_settings->{prefix} || {};
+  my $re = $msg->{parse_namreply_re} ||= do {
+    my $re = join '', keys %{$self->server_settings->{prefix} || {}};
+    $re ||= '\W';    # not a very good default
+    $re = "^([$re])";
+    qr{$re};
+  };
 
   for my $nick (sort { lc $a cmp lc $b } split /\s+/, $msg->{params}[3]) {
-    $users->{$nick}{mode} = $nick =~ s/^([~&@%+*]+)// ? $1 : '';
+    $users->{$nick}{mode} = $nick =~ s/$re// ? $prefix->{$1} || $1 : '';
   }
 }
 
@@ -504,7 +511,7 @@ holds the current topic.
 This can retrieve the users in a channel. C<$users> contains this structure:
 
   {
-    jhthorsen => {mode => "@"},
+    jhthorsen => {mode => "o"},
     Superman  => {mode => ""},
   }
 

@@ -19,7 +19,7 @@ my %CTCP_QUOTE = ("\012" => 'n', "\015" => 'r', "\0" => '0', "\cP" => "\cP");
 
 my @DEFAULT_EVENTS = qw(
   irc_ping irc_nick irc_notice irc_rpl_welcome err_nicknameinuse
-  ctcp_ping ctcp_time ctcp_version
+  irc_rpl_isupport ctcp_ping ctcp_time ctcp_version
 );
 
 has connect_timeout => sub { $ENV{MOJO_IRC_CONNECT_TIMEOUT} || 30 };
@@ -30,6 +30,15 @@ has nick   => sub { shift->_build_nick };
 has parser => sub { Parse::IRC->new; };
 has pass   => '';
 has real_host => '';
+
+has server_settings => sub {
+  return {
+    chantypes => {'#' => 1,   '&' => 1},
+    prefix    => {'%' => 'h', '&' => 'a', '+' => 'v', '@' => 'o', '~' => 'q'},
+    statusmsg => {'@' => 1,   '+' => 1},
+  };
+};
+
 has track_any => 0;
 has tls       => undef;
 has user      => sub { $ENV{USER} || getlogin || getpwuid($<) || 'anonymous' };
@@ -167,11 +176,11 @@ sub disconnect {
 sub register_default_event_handlers {
   my $self = shift;
 
-  Scalar::Util::weaken($self);
   for my $event (@DEFAULT_EVENTS) {
-    next if $self->has_subscribers($event);
-    $self->on($event => $self->can($event));
+    $self->on($event => $self->can($event)) unless $self->has_subscribers($event);
   }
+
+  return $self;
 }
 
 sub write {
@@ -236,6 +245,32 @@ sub irc_notice {
 sub irc_ping {
   my ($self, $message) = @_;
   $self->write(PONG => $message->{params}[0]);
+}
+
+sub irc_rpl_isupport {
+  my ($self, $message) = @_;
+  my $params          = $message->{params};
+  my $server_settings = $self->server_settings;
+  my %got;
+
+  for my $i (1 .. @$params - 1) {
+    next unless $params->[$i] =~ /([A-Z]+)=?(\S*)/;
+    my ($k, $v) = (lc $1, $2);
+    $got{$k} = 1;
+    $server_settings->{$k} = $v || 1;
+  }
+
+  for my $k (qw(chantypes statusmsg)) {
+    next unless $got{$k};
+    $server_settings->{$k} = {map { ($_ => 1) } split //, $server_settings->{$k}};
+  }
+
+  if ($got{prefix}) {
+    if (my @prefix = $server_settings->{prefix} =~ m!\((\w+)\)(.+)!) {
+      $prefix[0] = [split //, $prefix[0]];
+      $server_settings->{prefix} = {map { ($_ => shift @{$prefix[0]}) } split //, $prefix[1]};
+    }
+  }
 }
 
 sub irc_rpl_welcome {
@@ -457,6 +492,17 @@ server that we are connected to.
 Server name and, optionally, a port to connect to. Changing this while
 connected to the IRC server will issue a reconnect.
 
+=head2 server_settings
+
+  $hash = $self->server_settings;
+
+Holds information about the server. See
+L<https://github.com/jhthorsen/mojo-irc/blob/master/t/ua-channel-users.t> for
+example data structure.
+
+Note that this attribute is EXPERIMENTAL and the structure of the values it
+holds.
+
 =head2 user
 
 IRC username. Defaults to current logged in user or falls back to "anonymous".
@@ -573,6 +619,10 @@ broken...QUOTE PASS...".
 =head2 irc_ping
 
 Responds to the server with "PONG ...".
+
+=head2 irc_rpl_isupport
+
+Used to populate L</server_settings> with information about the server.
 
 =head2 irc_rpl_welcome
 

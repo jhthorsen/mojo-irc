@@ -37,7 +37,7 @@ $t->run(
         name     => '#convos',
         topic    => 'some cool topic',
         topic_by => 'jhthorsen!jhthorsen@i.love.debian.org',
-        users    => {batman => {mode => '@'}, Test21362 => {mode => ''}},
+        users    => {batman => {mode => 'o'}, Test21362 => {mode => ''}},
       },
       'got channel info'
     );
