@@ -1,6 +1,7 @@
 BEGIN {
   *Mojo::IRC::localtime = sub {'Fri Feb 21 19:35:24 2014'}
 }
+use lib '.';
 use t::Helper;
 
 my $port        = generate_port();
