@@ -32,11 +32,7 @@ has pass   => '';
 has real_host => '';
 
 has server_settings => sub {
-  return {
-    chantypes => {'#' => 1,   '&' => 1},
-    prefix    => {'%' => 'h', '&' => 'a', '+' => 'v', '@' => 'o', '~' => 'q'},
-    statusmsg => {'@' => 1,   '+' => 1},
-  };
+  return {chantypes => {'#' => 1, '&' => 1}, prefix => {'+' => 'v', '@' => 'o'}, statusmsg => {'@' => 1, '+' => 1},};
 };
 
 has track_any => 0;
