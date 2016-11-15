@@ -1,9 +1,24 @@
 package Mojo::IRC::UA;
 use Mojo::Base 'Mojo::IRC';
 
-use IRC::Utils ();
+use Data::Dumper ();
+use IRC::Utils   ();
+use constant DEBUG => $ENV{MOJO_IRC_DEBUG} || 0;
 
 has op_timeout => 10;
+
+has _parse_namreply_map => sub {
+  my $self   = shift;
+  my @prefix = split /[\(\)]/, $self->server_settings->{prefix} || '(@+)ov';
+  my $i      = 0;
+  my %map    = map { (substr($prefix[2], $i++, 1), $_) } split //, $prefix[1];
+  my $re     = "^([$prefix[2]])";
+
+  warn "[$self->{debug_key}] : parse_namreply_map=@{[Data::Dumper->new([[$re, \%map]])->Indent(0)->Terse(1)->Dump]}\n"
+    if DEBUG == 2;
+
+  return [qr{$re}, \%map];
+};
 
 sub channels {
   my ($self, $cb) = @_;
@@ -367,16 +382,10 @@ sub _mode_for_user {
 
 sub _parse_namreply {
   my ($self, $msg, $users) = @_;
-  my $prefix = $self->server_settings->{prefix} || {};
-  my $re = $msg->{parse_namreply_re} ||= do {
-    my $re = join '', keys %{$self->server_settings->{prefix} || {}};
-    $re ||= '\W';    # not a very good default
-    $re = "^([$re])";
-    qr{$re};
-  };
+  my ($re, $map) = @{$self->_parse_namreply_map};
 
   for my $nick (sort { lc $a cmp lc $b } split /\s+/, $msg->{params}[3]) {
-    $users->{$nick}{mode} = $nick =~ s/$re// ? $prefix->{$1} || $1 : '';
+    $users->{$nick}{mode} = $nick =~ s/$re// ? $map->{$1} || $1 : '';
   }
 }
 

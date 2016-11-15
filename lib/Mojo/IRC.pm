@@ -32,7 +32,7 @@ has pass   => '';
 has real_host => '';
 
 has server_settings => sub {
-  return {chantypes => {'#' => 1, '&' => 1}, prefix => {'+' => 'v', '@' => 'o'}, statusmsg => {'@' => 1, '+' => 1},};
+  return {chantypes => '#', prefix => '(ov)@+'};
 };
 
 has track_any => 0;
@@ -254,18 +254,6 @@ sub irc_rpl_isupport {
     my ($k, $v) = (lc $1, $2);
     $got{$k} = 1;
     $server_settings->{$k} = $v || 1;
-  }
-
-  for my $k (qw(chantypes statusmsg)) {
-    next unless $got{$k};
-    $server_settings->{$k} = {map { ($_ => 1) } split //, $server_settings->{$k}};
-  }
-
-  if ($got{prefix}) {
-    if (my @prefix = $server_settings->{prefix} =~ m!\((\w+)\)(.+)!) {
-      $prefix[0] = [split //, $prefix[0]];
-      $server_settings->{prefix} = {map { ($_ => shift @{$prefix[0]}) } split //, $prefix[1]};
-    }
   }
 }
 
