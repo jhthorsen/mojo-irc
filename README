@@ -2,7 +2,7 @@ NAME
     Mojo::IRC - IRC Client for the Mojo IOLoop
 
 VERSION
-    0.41
+    0.42
 
 SYNOPSIS
       my $irc = Mojo::IRC->new(
@@ -123,6 +123,16 @@ ATTRIBUTES
     Server name and, optionally, a port to connect to. Changing this while
     connected to the IRC server will issue a reconnect.
 
+  server_settings
+      $hash = $self->server_settings;
+
+    Holds information about the server. See
+    <https://github.com/jhthorsen/mojo-irc/blob/master/t/ua-channel-users.t>
+    for example data structure.
+
+    Note that this attribute is EXPERIMENTAL and the structure of the values
+    it holds.
+
   user
     IRC username. Defaults to current logged in user or falls back to
     "anonymous".
@@ -225,6 +235,9 @@ DEFAULT EVENT HANDLERS
 
   irc_ping
     Responds to the server with "PONG ...".
+
+  irc_rpl_isupport
+    Used to populate "server_settings" with information about the server.
 
   irc_rpl_welcome
     Used to get the hostname of the server. Will also set up automatic PING

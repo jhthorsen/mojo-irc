@@ -1,6 +1,6 @@
 Revision history for perl distribution Mojo-IRC
 
-0.42 Not Released
+0.42 2016-11-16T20:04:49+0100
  - Can detect server settings using rpl_isupport()
  - Improved parsing nicks with modes Nordaaker/Convos#287
 
