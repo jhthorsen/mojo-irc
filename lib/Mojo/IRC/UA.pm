@@ -27,8 +27,8 @@ sub channels {
   return $self->_write_and_wait(
     Parse::IRC::parse_irc("LIST"),
     {
-      irc_rpl_listend => {},     # :hybrid8.debian.local 323 superman :End of /LIST
-      irc_rpl_list    => sub {
+      rpl_listend => {},     # :hybrid8.debian.local 323 superman :End of /LIST
+      rpl_list    => sub {
         my ($self, $msg) = @_;
         my $topic = $msg->{params}[3] // '';
         $topic =~ s!^\[\+[a-z]+\]\s?!!;    # remove mode from topic, such as [+nt]
@@ -65,20 +65,20 @@ sub channel_topic {
       err_chanoprivsneeded => {1 => $channel},
       err_nochanmodes      => {1 => $channel},
       err_notonchannel     => {1 => $channel},
-      irc_rpl_notopic      => {1 => $channel},
-      irc_rpl_topic        => {1 => $channel},    # :hybrid8.debian.local 332 superman #convos :get cool topic
-      irc_topic            => {0 => $channel},    # set
+      rpl_notopic          => {1 => $channel},
+      rpl_topic            => {1 => $channel},    # :hybrid8.debian.local 332 superman #convos :get cool topic
+      topic                => {0 => $channel},    # set
     },
     sub {
       my ($self, $event, $err, $msg) = @_;
 
-      if ($event eq 'irc_rpl_notopic') {
+      if ($event eq 'rpl_notopic') {
         $res->{topic} = '';
       }
-      elsif ($event eq 'irc_rpl_topic') {
+      elsif ($event eq 'rpl_topic') {
         $res->{topic} = $msg->{params}[2] // '';
       }
-      elsif ($event eq 'irc_topic') {
+      elsif ($event eq 'topic') {
         $err = '';
       }
       else {
@@ -105,8 +105,8 @@ sub channel_users {
     {
       err_toomanymatches => {1 => $channel},
       err_nosuchserver   => {},
-      irc_rpl_endofnames => {1 => $channel},
-      irc_rpl_namreply   => sub {
+      rpl_endofnames     => {1 => $channel},
+      rpl_namreply       => sub {
         my ($self, $msg) = @_;
         $self->_parse_namreply($msg, $users) if lc $msg->{params}[2] eq lc $channel;
       },
@@ -142,8 +142,8 @@ sub join_channel {
       err_toomanychannels => {1 => $channel},
       err_toomanytargets  => {1 => $channel},
       err_unavailresource => {1 => $channel},
-      irc_479             => {1 => $channel},    # Illegal channel name
-      irc_rpl_endofnames  => {1 => $channel},    # :hybrid8.debian.local 366 superman #convos :End of /NAMES list.
+      479                 => {1 => $channel},    # Illegal channel name
+      rpl_endofnames      => {1 => $channel},    # :hybrid8.debian.local 366 superman #convos :End of /NAMES list.
       err_linkchannel     => sub {
         my ($self, $msg) = @_;
         return unless lc $msg->{params}[1] eq lc $channel;
@@ -152,15 +152,15 @@ sub join_channel {
         }
         $channel = $msg->{params}[2];
       },
-      irc_rpl_namreply => sub {
+      rpl_namreply => sub {
         my ($self, $msg) = @_;
         $self->_parse_namreply($msg, $info->{users}) if lc $msg->{params}[2] eq lc $channel;
       },
-      irc_rpl_topic => sub {
+      rpl_topic => sub {
         my ($self, $msg) = @_;
         $info->{topic} = $msg->{params}[2] if lc $msg->{params}[1] eq lc $channel;
       },
-      irc_rpl_topicwhotime => sub {
+      rpl_topicwhotime => sub {
         my ($self, $msg) = @_;
         $info->{topic_by} = $msg->{params}[2] if lc $msg->{params}[1] eq lc $channel;
       },
@@ -168,7 +168,7 @@ sub join_channel {
     sub {
       my ($self, $event, $err, $msg) = @_;
       $info->{name} = $channel;
-      $self->$cb($event =~ /^(?:err_|irc_479)/ ? $err || $msg->{params}[2] || $event : '', $info);
+      $self->$cb($event =~ /^(?:err_|479)/ ? $err || $msg->{params}[2] || $event : '', $info);
     }
   );
 }
@@ -190,7 +190,7 @@ sub kick {
       err_chanoprivsneeded => {1 => $target},
       err_usernotinchannel => {1 => $user},
       err_notonchannel     => {1 => $target},
-      irc_kick             => {0 => $target, 1 => $user},
+      kick => {0 => $target, 1 => $user},
     },
     sub {
       my ($self, $event, $err, $msg) = @_;
@@ -229,11 +229,11 @@ sub nick {
           err_nicknameinuse    => {1 => $nick},
           err_restricted       => {},
           err_unavailresource  => {},
-          irc_nick             => {0 => $nick},    # :Superman12923!superman@i.love.debian.org NICK :Supermanx12923
+          nick                 => {0 => $nick},    # :Superman12923!superman@i.love.debian.org NICK :Supermanx12923
         },
         sub {
           my ($self, $event, $err, $msg) = @_;
-          $self->nick($nick) if $event eq 'irc_nick';
+          $self->nick($nick) if $event eq 'nick';
           $self->$cb($event =~ /^err_/ ? $err || $msg->{params}[2] || $event : '');
         }
       );
@@ -267,12 +267,12 @@ sub part_channel {
     {
       err_nosuchchannel => {1 => $channel},    # :hybrid8.debian.local 403 nick #convos :No such channel
       err_notonchannel  => {1 => $channel},
-      irc_479           => {1 => $channel},    # Illegal channel name
-      irc_part          => {0 => $channel},
+      479               => {1 => $channel},    # Illegal channel name
+      part              => {0 => $channel},
     },
     sub {
       my ($self, $event, $err, $msg) = @_;
-      $self->$cb($event =~ /^(?:err_|irc_479)/ ? $err || $msg->{params}[2] || $event : '');
+      $self->$cb($event =~ /^(?:err_|479)/ ? $err || $msg->{params}[2] || $event : '');
     }
   );
 
@@ -290,11 +290,11 @@ sub whois {
   return $self->_write_and_wait(
     Parse::IRC::parse_irc("WHOIS $target"),
     {
-      err_nosuchnick     => {1 => $target},    # :hybrid8.debian.local 401 superman batman :No such nick/channel
-      err_nosuchserver   => {1 => $target},
-      irc_rpl_away       => {1 => $target},
-      irc_rpl_endofwhois => {1 => $target},
-      irc_rpl_whoischannels => sub {
+      err_nosuchnick   => {1 => $target},    # :hybrid8.debian.local 401 superman batman :No such nick/channel
+      err_nosuchserver => {1 => $target},
+      rpl_away         => {1 => $target},
+      rpl_endofwhois   => {1 => $target},
+      rpl_whoischannels => sub {
         my ($self, $msg) = @_;
         return unless lc $msg->{params}[1] eq lc $target;
         for (split /\s+/, $msg->{params}[2] || '') {
@@ -302,19 +302,19 @@ sub whois {
           $info->{channels}{$channel} = {mode => $mode};
         }
       },
-      irc_rpl_whoisidle => sub {
+      rpl_whoisidle => sub {
         my ($self, $msg) = @_;
         return unless lc $msg->{params}[1] eq lc $target;
         $info->{idle_for} = 0 + $msg->{params}[2];
       },
-      irc_rpl_whoisoperator => {},     # TODO
-      irc_rpl_whoisserver   => sub {
+      rpl_whoisoperator => {},     # TODO
+      rpl_whoisserver   => sub {
         my ($self, $msg) = @_;
         return unless lc $msg->{params}[1] eq lc $target;
         $info->{server}      = $msg->{params}[2];
         $info->{server_info} = $msg->{params}[3];
       },
-      irc_rpl_whoisuser => sub {
+      rpl_whoisuser => sub {
         my ($self, $msg) = @_;
         return unless lc $msg->{params}[1] eq lc $target;
         $info->{nick} = $msg->{params}[1];
@@ -330,6 +330,14 @@ sub whois {
   );
 }
 
+sub _dispatch_message {
+  my ($self, $msg) = @_;
+  my $listeners = $self->{write_and_wait}{$msg->{event}} || {};
+
+  $self->$_($msg) for values %$listeners;
+  $self->SUPER::_dispatch_message($msg);
+}
+
 sub _mode_for_channel {
   my ($self, $target, $mode, $cb) = @_;
   my $res = {banlist => [], exceptlist => [], invitelist => [], uniqopis => [], mode => $mode, params => ''};
@@ -337,21 +345,21 @@ sub _mode_for_channel {
   return $self->_write_and_wait(
     Parse::IRC::parse_irc("MODE $target $mode"),
     {
-      err_chanoprivsneeded    => {1 => $target},
-      err_keyset              => {1 => $target},
-      err_needmoreparams      => {1 => $target},
-      err_nochanmodes         => {1 => $target},
-      err_unknownmode         => {1 => $target},
-      err_usernotinchannel    => {1 => $target},
-      irc_mode                => {0 => $target},
-      irc_rpl_endofbanlist    => {1 => $target},
-      irc_rpl_endofexceptlist => {1 => $target},
-      irc_rpl_endofinvitelist => {1 => $target},
-      irc_rpl_channelmodeis => sub { @$res{qw(mode params)} = @{$_[1]->{params}}[1, 2] },
-      irc_rpl_banlist    => sub { push @{$res->{banlist}},    $_[1]->{params}[1] },
-      irc_rpl_exceptlist => sub { push @{$res->{exceptlist}}, $_[1]->{params}[1] },
-      irc_rpl_invitelist => sub { push @{$res->{invitelist}}, $_[1]->{params}[1] },
-      irc_rpl_uniqopis   => sub { push @{$res->{uniqopis}},   $_[1]->{params}[1] },
+      err_chanoprivsneeded => {1 => $target},
+      err_keyset           => {1 => $target},
+      err_needmoreparams   => {1 => $target},
+      err_nochanmodes      => {1 => $target},
+      err_unknownmode      => {1 => $target},
+      err_usernotinchannel => {1 => $target},
+      mode                 => {0 => $target},
+      rpl_endofbanlist     => {1 => $target},
+      rpl_endofexceptlist  => {1 => $target},
+      rpl_endofinvitelist  => {1 => $target},
+      rpl_channelmodeis => sub { @$res{qw(mode params)} = @{$_[1]->{params}}[1, 2] },
+      rpl_banlist    => sub { push @{$res->{banlist}},    $_[1]->{params}[1] },
+      rpl_exceptlist => sub { push @{$res->{exceptlist}}, $_[1]->{params}[1] },
+      rpl_invitelist => sub { push @{$res->{invitelist}}, $_[1]->{params}[1] },
+      rpl_uniqopis   => sub { push @{$res->{uniqopis}},   $_[1]->{params}[1] },
     },
     sub {
       my ($self, $event, $err, $msg) = @_;
@@ -370,8 +378,8 @@ sub _mode_for_user {
       err_umodeunknownflag => {},
       err_needmoreparams   => {},
       err_usersdontmatch   => {},
-      irc_mode             => {0 => $nick},
-      irc_rpl_umodeis      => {0 => $nick},
+      mode        => {0 => $nick},
+      rpl_umodeis => {0 => $nick},
     },
     sub {
       my ($self, $event, $err, $msg) = @_;
@@ -391,16 +399,12 @@ sub _parse_namreply {
 
 sub _write_and_wait {
   my ($self, $msg, $look_for, $handler) = @_;
-  my ($tid, $timeout, @subscriptions);
+  my ($tid, $timeout);
 
   # This method will send a IRC command to the server and wait for a
   # corresponding IRC event is returned from the server. On such an
   # event, the $handler callback will be called, but only if the event
   # received match the rules set in $look_for.
-
-  # @subscriptions keeps track for the "private" IRC event handlers
-  # for this method call, so we won't mess up other calls to
-  # _write_and_wait() at the same time.
 
   Scalar::Util::weaken($self);
 
@@ -409,30 +413,28 @@ sub _write_and_wait {
   $tid = Mojo::IOLoop->timer(
     ($timeout = $self->op_timeout),
     sub {
-      $self->unsubscribe(shift @subscriptions, shift @subscriptions) while @subscriptions;
+      delete $self->{write_and_wait}{$_}{$msg->{raw_line}} for keys %$look_for;
       $self->$handler(err_timeout => "Response timeout after ${timeout}s.", {});
     }
   );
 
   # Set up which IRC events to look for
   for my $event (keys %$look_for) {
-    push @subscriptions, $event, $self->on(
-      $event => sub {
-        my ($self, $msg) = @_;
-        my $needle = $look_for->{$event};
-        local $msg->{look_for} = $look_for;
-        return $self->$needle($msg) if ref $needle eq 'CODE';
+    $self->{write_and_wait}{$event}{$msg->{raw_line}} = sub {
+      my ($self, $msg) = @_;
+      my $needle = $look_for->{$event};
+      $msg->{look_for} = $look_for;
+      return $self->$needle($msg) if ref $needle eq 'CODE';
 
-        for my $k (keys %$needle) {
-          my $v = $k =~ /^\d/ ? $msg->{params}[$k] : $msg->{$k};
-          return unless lc $v eq lc $needle->{$k};
-        }
-
-        Mojo::IOLoop->remove($tid);
-        $self->unsubscribe(shift @subscriptions, shift @subscriptions) while @subscriptions;
-        $self->$handler($event => '', $msg);
+      for my $k (keys %$needle) {
+        my $v = $k =~ /^\d/ ? $msg->{params}[$k] : $msg->{$k};
+        return unless lc $v eq lc $needle->{$k};
       }
-    );
+
+      Mojo::IOLoop->remove($tid);
+      delete $self->{write_and_wait}{$_}{$msg->{raw_line}} for keys %$look_for;
+      $self->$handler($event => '', $msg);
+    };
   }
 
   # Write the command to the IRC server and stop looking for events
@@ -440,10 +442,11 @@ sub _write_and_wait {
   $self->write(
     $msg->{raw_line},
     sub {
-      return unless $_[1];    # no error
+      my ($self, $err) = @_;
+      return unless $err;    # no error
       Mojo::IOLoop->remove($tid);
-      $self->unsubscribe(shift @subscriptions, shift @subscriptions) while @subscriptions;
-      $self->$handler(err_write => $_[1], {});
+      delete $self->{write_and_wait}{$_}{$msg->{raw_line}} for keys %$look_for;
+      $self->$handler(err_write => $err, {});
     }
   );
 

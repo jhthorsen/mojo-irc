@@ -35,9 +35,14 @@ has server_settings => sub {
   return {chantypes => '#', prefix => '(ov)@+'};
 };
 
-has track_any => 0;
-has tls       => undef;
-has user      => sub { $ENV{USER} || getlogin || getpwuid($<) || 'anonymous' };
+has tls => undef;
+has user => sub { $ENV{USER} || getlogin || getpwuid($<) || 'anonymous' };
+
+sub new {
+  my $self = shift->SUPER::new(@_);
+  $self->on(message => \&_legacy_dispatch_message);
+  return $self;
+}
 
 sub server {
   my ($self, $server) = @_;
@@ -179,6 +184,14 @@ sub register_default_event_handlers {
   return $self;
 }
 
+sub track_any {
+  warn 'DEPRECATED! Just listen to $self->on(message => sub {}) instead.';
+  my $self = shift;
+  return $self->{track_any} || 0 unless @_;
+  $self->{track_any} = shift;
+  $self;
+}
+
 sub write {
   no warnings 'utf8';
   my $cb   = ref $_[-1] eq 'CODE' ? pop : sub { };
@@ -295,6 +308,21 @@ sub _build_nick {
   $nick;
 }
 
+sub _dispatch_message {
+  my ($self, $msg) = @_;
+  $self->emit(irc_any => $msg) if $self->{track_any};    # will be deprecated
+  $self->emit(message => $msg);
+}
+
+sub _legacy_dispatch_message {
+  my ($self, $msg) = @_;
+  my $event = $msg->{event};
+
+  $event = "irc_$event" unless $event =~ /^(ctcp|err)_/;
+  warn "[$self->{debug_key}] === $event\n" if DEBUG == 2;
+  $self->emit($event => $msg);
+}
+
 # Can be used in unittest to mock input data:
 # $irc->_read($bytes);
 sub _read {
@@ -307,22 +335,10 @@ CHUNK:
   while ($self->{buffer} =~ s/^([^\015\012]+)[\015\012]//m) {
     warn "[$self->{debug_key}] >>> $1\n" if DEBUG;
     my $msg = $self->parser->parse($1);
-    my $event = $msg->{command} or next CHUNK;
-
-    if ($event =~ /^\d+$/) {
-      $self->emit("irc_$event" => $msg);
-      $event = $NUMERIC2NAME{$event} || IRC::Utils::numeric_to_name($event) || $event;
-    }
-    if ($event !~ /^\d+$/) {
-      $event = lc $event;
-      $event = "irc_$event" unless $event =~ /^(ctcp|err)_/;
-      warn "[$self->{debug_key}] === $event\n" if DEBUG == 2;
-      $self->emit($event => $msg);
-    }
-    if ($self->{track_any}) {
-      $msg->{event} = $event;
-      $self->emit(irc_any => $msg);
-    }
+    my $cmd = $msg->{command} or next CHUNK;
+    $msg->{command} = $NUMERIC2NAME{$cmd} || IRC::Utils::numeric_to_name($cmd) || $cmd if $cmd =~ /^\d+$/;
+    $msg->{event} = lc $msg->{command};
+    $self->_dispatch_message($msg);
   }
 }
 
@@ -399,11 +415,33 @@ L<Test::Mojo::IRC>.
 
 =head2 close
 
+  $self->on(close => sub { my ($self) = @_; });
+
 Emitted once the connection to the server closes.
 
 =head2 error
 
+  $self->on(error => sub { my ($self, $err) = @_; });
+
 Emitted once the stream emits an error.
+
+=head2 message
+
+  $self->on(message => sub { my ($self, $msg) = @_; });
+
+Emitted when a new IRC message arrives. Will dispatch to a default handler,
+which will again emit L</err_event_name> L</ctcp_event_name> and
+L</irc_event_name> below.
+
+Here is an example C<$msg>:
+
+  {
+    command  => "PRIVMSG",
+    event    => "privmsg",
+    params   => ["#convos", "hey!"],
+    prefix   => "jan_henning",
+    raw_line => ":jan_henning PRIVMSG #convos :hey",
+  }
 
 =head2 err_event_name
 
@@ -507,22 +545,6 @@ This can be generated using
   # certtool --generate-privkey --outfile client.key
   # certtool --generate-self-signed --load-privkey client.key --outfile client.crt
 
-=head2 track_any
-
-  $bool = $self->track_any;
-
-Setting this attribute to true will cause the "irc_any" event to be emitted on
-any event:
-
-  $self->track_any(1);
-  $self->on(irc_any => sub {
-    my ($self, $msg) = @_;
-    warn "$msg->{event} was emitted\n";
-  });
-
-Note that this event is EXPERIMENTAL. This event was added because the
-catch-all "irc_error" event was removed.
-
 =head1 METHODS
 
 =head2 connect
@@ -550,6 +572,12 @@ The code above will write this message to IRC server:
   $self->disconnect(\&callback);
 
 Will disconnect form the server and run the callback once it is done.
+
+=head2 new
+
+  $self = Mojo::IRC->new(%attrs);
+
+Object constructor.
 
 =head2 register_default_event_handlers
 

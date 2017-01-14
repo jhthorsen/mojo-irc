@@ -1,8 +1,9 @@
 package Test::Mojo::IRC;
 use Mojo::Base -base;
+
+use Mojo::File;
 use Mojo::IOLoop::Server;
 use Mojo::IRC;
-use Mojo::Util;
 
 $ENV{TEST_MOJO_IRC_SERVER_TIMEOUT} ||= $ENV{TEST_MOJO_IRC_SERVER} ? 10 : 4;
 
@@ -93,7 +94,7 @@ sub _concat_server_buf {
     $buf = Mojo::Loader::data_section(@$buf == 1 ? ('main', @$buf) : @$buf);
   }
   elsif (ref $buf) {
-    $buf = Mojo::Util::slurp(File::Spec->catfile(split '/', $$buf));
+    $buf = Mojo::File::path(split '/', $$buf)->slurp;
   }
 
   $buf =~ s/[\015\012]/\015\012/g;
