@@ -3,6 +3,7 @@ Revision history for perl distribution Mojo-IRC
 0.43 Not Released
  - Add "message" event
  - Replaced EXPERIMENTAL "irc_any" event with "message" event
+ - Compatible with Mojolicious 7.18
 
 0.42 2016-11-16T20:04:49+0100
  - Can detect server settings using rpl_isupport()
