@@ -1,6 +1,6 @@
 Revision history for perl distribution Mojo-IRC
 
-0.44 Not Released
+0.44 2017-02-18T02:50:18+0100
  - Fix Mojo::IRC::UA did not clean up events
 
 0.43 2017-01-14T11:10:32+0100
