@@ -1,5 +1,8 @@
 Revision history for perl distribution Mojo-IRC
 
+0.44 Not Released
+ - Fix Mojo::IRC::UA did not clean up events
+
 0.43 2017-01-14T11:10:32+0100
  - Add "message" event #29
  - Replaced EXPERIMENTAL "irc_any" event with "message" event #29

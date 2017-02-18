@@ -55,6 +55,29 @@ $t->run(
   }
 );
 
+# TODO: Should the keys also get deleted?
+is_deeply(
+  $irc->{write_and_wait},
+  {
+    479                 => {},
+    err_badchanmask     => {},
+    err_badchannelkey   => {},
+    err_bannedfromchan  => {},
+    err_channelisfull   => {},
+    err_inviteonlychan  => {},
+    err_linkchannel     => {},
+    err_nosuchchannel   => {},
+    err_toomanychannels => {},
+    err_toomanytargets  => {},
+    err_unavailresource => {},
+    rpl_endofnames      => {},
+    rpl_namreply        => {},
+    rpl_topic           => {},
+    rpl_topicwhotime    => {},
+  },
+  'events are cleaned up'
+);
+
 done_testing;
 
 __DATA__

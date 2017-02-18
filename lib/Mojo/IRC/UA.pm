@@ -399,6 +399,7 @@ sub _parse_namreply {
 
 sub _write_and_wait {
   my ($self, $msg, $look_for, $handler) = @_;
+  my $cmd = $msg->{raw_line};
   my ($tid, $timeout);
 
   # This method will send a IRC command to the server and wait for a
@@ -413,27 +414,27 @@ sub _write_and_wait {
   $tid = Mojo::IOLoop->timer(
     ($timeout = $self->op_timeout),
     sub {
-      delete $self->{write_and_wait}{$_}{$msg->{raw_line}} for keys %$look_for;
+      delete $self->{write_and_wait}{$_}{$cmd} for keys %$look_for;
       $self->$handler(err_timeout => "Response timeout after ${timeout}s.", {});
     }
   );
 
   # Set up which IRC events to look for
   for my $event (keys %$look_for) {
-    $self->{write_and_wait}{$event}{$msg->{raw_line}} = sub {
-      my ($self, $msg) = @_;
+    $self->{write_and_wait}{$event}{$cmd} = sub {
+      my ($self, $res) = @_;
       my $needle = $look_for->{$event};
-      $msg->{look_for} = $look_for;
-      return $self->$needle($msg) if ref $needle eq 'CODE';
+      $res->{look_for} = $look_for;
+      return $self->$needle($res) if ref $needle eq 'CODE';
 
       for my $k (keys %$needle) {
-        my $v = $k =~ /^\d/ ? $msg->{params}[$k] : $msg->{$k};
+        my $v = $k =~ /^\d/ ? $res->{params}[$k] : $res->{$k};
         return unless lc $v eq lc $needle->{$k};
       }
 
       Mojo::IOLoop->remove($tid);
-      delete $self->{write_and_wait}{$_}{$msg->{raw_line}} for keys %$look_for;
-      $self->$handler($event => '', $msg);
+      delete $self->{write_and_wait}{$_}{$cmd} for keys %$look_for;
+      $self->$handler($event => '', $res);
     };
   }
 
@@ -445,7 +446,7 @@ sub _write_and_wait {
       my ($self, $err) = @_;
       return unless $err;    # no error
       Mojo::IOLoop->remove($tid);
-      delete $self->{write_and_wait}{$_}{$msg->{raw_line}} for keys %$look_for;
+      delete $self->{write_and_wait}{$_}{$cmd} for keys %$look_for;
       $self->$handler(err_write => $err, {});
     }
   );
