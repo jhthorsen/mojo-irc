@@ -53,11 +53,9 @@ sub server {
   return $self if $old and $old eq $server;
   $self->{server} = $server;
   return $self unless $self->{stream_id};
-  $self->disconnect(
-    sub {
-      $self->connect(sub { });
-    }
-  );
+  $self->disconnect(sub {
+    $self->connect(sub { });
+  });
   $self;
 }
 
