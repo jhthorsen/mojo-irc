@@ -83,7 +83,7 @@ sub connect {
     push @extra, tls_ca   => $tls->{ca} if $tls->{ca};     # not sure why this should be supported, but adding it anyway
     push @extra, tls_cert => $tls->{cert} || DEFAULT_CERT;
     push @extra, tls_key  => $tls->{key} || DEFAULT_KEY;
-    push @extra, tls_verify => 0x00 if defined $tls->{insecure};
+    push @extra, tls_verify => 0x00 if $tls->{insecure};
   }
 
   $port ||= 6667;
