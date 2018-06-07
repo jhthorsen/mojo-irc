@@ -11,7 +11,7 @@ use constant DEBUG        => $ENV{MOJO_IRC_DEBUG}     || 0;
 use constant DEFAULT_CERT => $ENV{MOJO_IRC_CERT_FILE} || catfile dirname(__FILE__), 'mojo-irc-client.crt';
 use constant DEFAULT_KEY  => $ENV{MOJO_IRC_KEY_FILE}  || catfile dirname(__FILE__), 'mojo-irc-client.key';
 
-our $VERSION = '0.44';
+our $VERSION = '0.45';
 
 our %NUMERIC2NAME = (470 => 'ERR_LINKCHANNEL');
 
@@ -26,10 +26,10 @@ has connect_timeout => sub { $ENV{MOJO_IRC_CONNECT_TIMEOUT} || 30 };
 has ioloop          => sub { Mojo::IOLoop->singleton };
 has local_address   => '';
 has name            => 'Mojo IRC';
-has nick   => sub { shift->_build_nick };
-has parser => sub { Parse::IRC->new; };
-has pass   => '';
-has real_host => '';
+has nick            => sub { shift->_build_nick };
+has parser          => sub { Parse::IRC->new; };
+has pass            => '';
+has real_host       => '';
 
 has server_settings => sub {
   return {chantypes => '#', prefix => '(ov)@+'};
@@ -351,7 +351,7 @@ Mojo::IRC - IRC Client for the Mojo IOLoop
 
 =head1 VERSION
 
-0.44
+0.45
 
 =head1 SYNOPSIS
 
@@ -547,7 +547,7 @@ This can be generated using
 To disable the verification of server certificates, the "insecure" option
 can be set:
 
-  $self->tls({ insecure => 1 });
+  $self->tls({insecure => 1});
 
 =head1 METHODS
 
