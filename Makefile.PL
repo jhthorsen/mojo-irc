@@ -12,7 +12,7 @@ my %WriteMakefileArgs = (
   PREREQ_PM      => {
     'IRC::Utils'    => '0.12',
     'List::Util'    => '1.33',
-    'Mojolicious'   => '7.18',
+    'Mojolicious'   => '7.54',
     'Parse::IRC'    => '1.20',
     'Unicode::UTF8' => '0.59'
   },
