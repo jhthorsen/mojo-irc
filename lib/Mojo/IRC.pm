@@ -65,11 +65,11 @@ sub connect {
   my @extra;
 
   if (!$host) {
-    Mojo::IOLoop->next_tick(sub { $self->$cb('server() is not set.') });
+    $self->ioloop->next_tick(sub { $self->$cb('server() is not set.') });
     return $self;
   }
   if ($self->{stream_id}) {
-    Mojo::IOLoop->next_tick(sub { $self->$cb('') });
+    $self->ioloop->next_tick(sub { $self->$cb('') });
     return $self;
   }
 
@@ -167,7 +167,7 @@ sub disconnect {
     );
   }
   elsif ($cb) {
-    Mojo::IOLoop->next_tick(sub { $self->$cb });
+    $self->ioloop->next_tick(sub { $self->$cb });
   }
 
   $self;
@@ -203,7 +203,7 @@ sub write {
     $self->{stream}->write("$buf\r\n", sub { $self->$cb(''); });
   }
   else {
-    Mojo::IOLoop->next_tick(sub { $self->$cb('Not connected.') });
+    $self->ioloop->next_tick(sub { $self->$cb('Not connected.') });
   }
 
   $self;
