@@ -1,6 +1,7 @@
 package Mojo::IRC;
 use Mojo::Base 'Mojo::EventEmitter';
 use Mojo::IOLoop;
+use Mojo::Promise;
 use File::Basename 'dirname';
 use File::Spec::Functions 'catfile';
 use IRC::Utils   ();
@@ -125,17 +126,13 @@ sub connect {
       $stream->on(read => sub { $self->_read($_[1]) });
 
       $self->{stream} = $stream;
-      $self->ioloop->delay(
-        sub {
-          my $delay = shift;
-          $self->write(PASS => $self->pass, $delay->begin) if length $self->pass;
-          $self->write(NICK => $self->nick, $delay->begin);
-          $self->write(USER => $self->user, 8, '*', ':' . $self->name, $delay->begin);
-        },
-        sub {
-          $self->$cb('');
-        }
-      );
+      $self->ioloop->next_tick(sub {
+        my @promises;
+        push @promises, $self->write_p(PASS => $self->pass) if length $self->pass;
+        push @promises, $self->write_p(NICK => $self->nick);
+        push @promises, $self->write_p(USER => $self->user, 8, '*', ':' . $self->name);
+        Mojo::Promise->all(@promises)->finally(sub { $self->$cb('') });
+      });
     }
   );
 
@@ -208,6 +205,13 @@ sub write {
   }
 
   $self;
+}
+
+sub write_p {
+  my ($self, @args) = @_;
+  my $p = Mojo::Promise->new->ioloop($self->ioloop);
+  $self->write(@args, sub { length $_[1] ? $p->reject($_[1]) : $p->resolve(1) });
+  return $p;
 }
 
 sub ctcp_ping {
@@ -599,6 +603,14 @@ This method writes a message to the IRC server. C<@str> will be concatenated
 with " " and "\r\n" will be appended. C<&callback> is called once the message is
 delivered over the stream. The second argument to the callback will be
 an error message: Empty string on success and a description on error.
+
+=head2 write_p
+
+  $promise = $self->write_p(@str);
+
+Like L</"write">, but returns a L<Mojo::Promise> instead of taking a callback.
+The promise will be resolved on success, or rejected with the error message on
+error.
 
 =head1 DEFAULT EVENT HANDLERS
 
