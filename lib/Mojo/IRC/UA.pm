@@ -3,7 +3,10 @@ use Mojo::Base 'Mojo::IRC';
 
 use Data::Dumper ();
 use IRC::Utils   ();
+use Mojo::Util   ();
 use constant DEBUG => $ENV{MOJO_IRC_DEBUG} || 0;
+
+Mojo::Util::deprecated 'Mojo::IRC::UA is deprecated and should no longer be used';
 
 has op_timeout => 10;
 
@@ -460,7 +463,7 @@ sub _write_and_wait {
 
 =head1 NAME
 
-Mojo::IRC::UA - IRC Client with sugar on top
+Mojo::IRC::UA - IRC Client with sugar on top (DEPRECATED)
 
 =head1 SYNOPSIS
 
@@ -472,7 +475,7 @@ Mojo::IRC::UA - IRC Client with sugar on top
 L<Mojo::IRC::UA> is a module which extends L<Mojo::IRC> with methods
 that can track changes in state on the IRC server.
 
-This module is EXPERIMENTAL and can change without warning.
+This module is DEPRECATED and should no longer be used.
 
 =head1 ATTRIBUTES
 
