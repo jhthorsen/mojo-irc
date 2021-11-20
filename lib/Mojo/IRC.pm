@@ -322,7 +322,7 @@ sub _legacy_dispatch_message {
   my ($self, $msg) = @_;
   my $event = $msg->{event};
 
-  $event = "irc_$event" unless $event =~ /^(ctcp|err)_/;
+  $event = "irc_$event" unless $event =~ /^(ctcp(reply)?|err)_/;
   warn "[$self->{debug_key}] === $event\n" if DEBUG == 2;
   $self->emit($event => $msg);
 }
