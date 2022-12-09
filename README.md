@@ -2,10 +2,6 @@
 
 Mojo::IRC - IRC Client for the Mojo IOLoop
 
-# VERSION
-
-0.46
-
 # SYNOPSIS
 
     my $irc = Mojo::IRC->new(

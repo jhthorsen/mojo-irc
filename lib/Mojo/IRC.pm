@@ -345,10 +345,6 @@ CHUNK:
 
 Mojo::IRC - IRC Client for the Mojo IOLoop
 
-=head1 VERSION
-
-0.46
-
 =head1 SYNOPSIS
 
   my $irc = Mojo::IRC->new(
