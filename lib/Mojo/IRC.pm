@@ -250,7 +250,7 @@ sub irc_notice {
   my ($self, $message) = @_;
 
   # NOTICE AUTH :*** Ident broken or disabled, to continue to connect you must type /QUOTE PASS 21105
-  if ($message->{params}[0] =~ m!Ident broken.*QUOTE PASS (\S+)!) {
+  if ($message->{params}[1] =~ m!Ident broken.*QUOTE PASS (\S+)!) {
     $self->write(QUOTE => PASS => $1);
   }
 }
