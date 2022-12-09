@@ -1,6 +1,6 @@
 Revision history for perl distribution Mojo-IRC
 
-0.47 Not Released
+0.47 2022-12-09T10:16:04
  - Removed deprecated method track_any()
  - Passthrough ctcpreply events from Parse::IRC #32
    Contributor: Dominik Hassler
