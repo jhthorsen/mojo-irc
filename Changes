@@ -1,6 +1,7 @@
 Revision history for perl distribution Mojo-IRC
 
 0.47 Not Released
+ - Removed deprecated method track_any()
  - Passthrough ctcpreply events from Parse::IRC #32
    Contributor: Dominik Hassler
  - Text for NOTICE is in the second param #33
